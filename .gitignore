@@ -7,3 +7,7 @@ build/
 .idea/
 .DS_Store
 *.local
+dist-ssr/
+*.log
+.vscode/*
+!.vscode/extensions.json
