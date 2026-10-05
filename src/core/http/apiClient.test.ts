@@ -1,37 +1,46 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { createApiClient } from './apiClient';
+
+// A Response body is a one-shot stream, so every fetch call gets a fresh one.
+function respondWith(body: unknown, status: number) {
+  return () => Promise.resolve(new Response(JSON.stringify(body), { status }));
+}
 
 describe('apiClient', () => {
   let getToken: () => string | null;
-  let onUnauthorized: ReturnType<typeof vi.fn>;
+  let onUnauthorized: Mock<() => void>;
+  let fetchMock: Mock<typeof fetch>;
 
   beforeEach(() => {
     getToken = () => 'test-token';
     onUnauthorized = vi.fn();
-    global.fetch = vi.fn();
+    fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal('fetch', fetchMock);
   });
 
   afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
   it('attaches Authorization and a fresh X-Correlation-Id on every request', async () => {
-    (global.fetch as any).mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    fetchMock.mockImplementation(respondWith({ ok: true }, 200));
     const client = createApiClient('http://gateway', getToken, onUnauthorized);
 
     await client.request('/api/v1/products');
     await client.request('/api/v1/products');
 
-    const [first, second] = (global.fetch as any).mock.calls;
-    expect(first[1].headers['Authorization']).toBe('Bearer test-token');
-    expect(first[1].headers['X-Correlation-Id']).toBeTruthy();
-    expect(first[1].headers['X-Correlation-Id']).not.toBe(second[1].headers['X-Correlation-Id']);
+    const [first, second] = fetchMock.mock.calls.map(
+      ([, init]) => init?.headers as Record<string, string>
+    );
+    expect(first['Authorization']).toBe('Bearer test-token');
+    expect(first['X-Correlation-Id']).toBeTruthy();
+    expect(first['X-Correlation-Id']).not.toBe(second['X-Correlation-Id']);
   });
 
   it('clears the session when a response is 401', async () => {
-    (global.fetch as any).mockResolvedValue(
-      new Response(JSON.stringify({ error: 'UNAUTHORIZED', message: 'no', traceId: 'x' }), { status: 401 })
-    );
+    fetchMock.mockImplementation(respondWith({ error: 'UNAUTHORIZED', message: 'no', traceId: 'x' }, 401));
     const client = createApiClient('http://gateway', getToken, onUnauthorized);
 
     await expect(client.request('/api/v1/products')).rejects.toThrow();
@@ -40,27 +49,28 @@ describe('apiClient', () => {
 
   it('surfaces a distinct TIMEOUT error when the request takes too long', async () => {
     vi.useFakeTimers();
-    (global.fetch as any).mockImplementation(
-      (_url: string, opts: RequestInit) =>
+    fetchMock.mockImplementation(
+      (_url, init) =>
         new Promise((_resolve, reject) => {
-          opts.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+          init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
         })
     );
     const client = createApiClient('http://gateway', getToken, onUnauthorized);
 
-    const promise = client.request('/api/v1/products');
+    // Attach the rejection handler before advancing time; otherwise the
+    // promise rejects mid-advance with no handler and Vitest flags it as
+    // an unhandled rejection.
+    const assertion = expect(client.request('/api/v1/products')).rejects.toMatchObject({
+      status: 0,
+      body: { error: 'TIMEOUT' },
+    });
     await vi.advanceTimersByTimeAsync(10_000);
-
-    await expect(promise).rejects.toMatchObject({ status: 0, body: { error: 'TIMEOUT' } });
-    vi.useRealTimers();
+    await assertion;
   });
 
   it('maps every failed response through one place', async () => {
-    (global.fetch as any).mockResolvedValue(
-      new Response(
-        JSON.stringify({ error: 'BUSINESS_RULE_VIOLATION', message: 'insufficient stock', traceId: 'x' }),
-        { status: 422 }
-      )
+    fetchMock.mockImplementation(
+      respondWith({ error: 'BUSINESS_RULE_VIOLATION', message: 'insufficient stock', traceId: 'x' }, 422)
     );
     const client = createApiClient('http://gateway', getToken, onUnauthorized);
 
