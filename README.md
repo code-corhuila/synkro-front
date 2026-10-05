@@ -23,3 +23,19 @@ branch into another: `merge develop -> qa` and `merge qa -> main` do not exist i
 rule.
 
 Full policy: `00-governance/branching-policy.md` in `synkro-docs`.
+
+## Running locally
+
+```bash
+npm install
+npm run dev
+```
+
+Copy `.env.example` to `.env.local` and adjust `VITE_API_BASE_URL` if the gateway is not on
+`http://localhost:8000`.
+
+## Running the tests
+
+```bash
+npm test
+```
