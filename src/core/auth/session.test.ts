@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { getSession, setSession, signInWithDevToken, restoreSession } from './session';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { getSession, setSession, signInWithDevToken } from './session';
 
 function fakeJwt(payload: Record<string, unknown>) {
   const b64 = (obj: unknown) =>
@@ -33,11 +33,18 @@ describe('session', () => {
     expect(getSession()).toBeNull();
   });
 
-  it('persists the session in sessionStorage across a restore', () => {
+  it('persists the session in sessionStorage across a restore', async () => {
     signInWithDevToken(fakeJwt({ sub: 'bob', roles: ['SALESPERSON'] }));
-    setSession(null); // simulate losing the in-memory copy (e.g. a reload)
-    restoreSession();
-    expect(getSession()).toMatchObject({ sub: 'bob', role: 'SALESPERSON' });
+
+    // Simulate a reload: a fresh module instance (in-memory session gone)
+    // while sessionStorage survives. setSession(null) can't be used here —
+    // that is sign-out, and it clears storage too.
+    vi.resetModules();
+    const reloaded = await import('./session');
+    expect(reloaded.getSession()).toBeNull();
+
+    reloaded.restoreSession();
+    expect(reloaded.getSession()).toMatchObject({ sub: 'bob', role: 'SALESPERSON' });
   });
 
   it('clears sessionStorage on sign-out', () => {
