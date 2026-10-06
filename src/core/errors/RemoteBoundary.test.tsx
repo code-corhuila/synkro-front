@@ -46,4 +46,14 @@ describe('RemoteBoundary', () => {
     await waitFor(() => expect(screen.getByText(/products.*not available/i)).toBeInTheDocument());
     expect(screen.getByText('sales content')).toBeInTheDocument();
   });
+
+  it('shows the unavailable notice even when load rejects with a non-Error value', async () => {
+    const load = vi.fn().mockRejectedValue(undefined);
+    render(
+      <RemoteBoundary load={load} portalName="products">
+        {() => <div>products content</div>}
+      </RemoteBoundary>
+    );
+    await waitFor(() => expect(screen.getByText(/products.*not available/i)).toBeInTheDocument());
+  });
 });
