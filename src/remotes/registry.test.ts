@@ -1,5 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { portals } from './registry';
+import { customersPortalEntryUrl, loadCustomElement } from './customElement';
+
+vi.mock('./customElement', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./customElement')>();
+  return { ...actual, loadCustomElement: vi.fn(() => async () => 'loaded') };
+});
 
 describe('portal registry', () => {
   it('has exactly one entry per domain portal', () => {
@@ -33,5 +39,15 @@ describe('portal registry', () => {
       products: ['/products', '/stock', '/stock-alerts'],
       sales: ['/sales'],
     });
+  });
+
+describe('customers portal entry', () => {
+  it('loads through the custom-element loader: entry file import, then the bounded whenDefined wait', () => {
+    expect(loadCustomElement).toHaveBeenCalledWith({
+      tagName: 'synkro-customers-portal',
+      entryUrl: customersPortalEntryUrl,
+    });
+    const customers = portals.find((p) => p.name === 'customers');
+    expect(vi.mocked(loadCustomElement).mock.results[0].value).toBe(customers?.load);
   });
 });
