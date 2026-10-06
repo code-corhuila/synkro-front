@@ -2,21 +2,15 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { DevSignIn } from './core/auth/DevSignIn'
 import { RequireAuth } from './core/auth/RequireAuth'
 import { getSession } from './core/auth/session'
+import { NotFound } from './layout/NotFound'
+import { Shell } from './layout/Shell'
 
 function DashboardPlaceholder() {
   return (
-    <main>
+    <>
       <h1>Dashboard</h1>
       <p>Signed in as {getSession()?.sub}.</p>
-    </main>
-  )
-}
-
-function NotFound() {
-  return (
-    <main>
-      <h1>Page not found</h1>
-    </main>
+    </>
   )
 }
 
@@ -31,13 +25,14 @@ function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         {devSignIn && <Route path="/login" element={<DevSignIn />} />}
         <Route
-          path="/dashboard"
           element={
             <RequireAuth>
-              <DashboardPlaceholder />
+              <Shell />
             </RequireAuth>
           }
-        />
+        >
+          <Route path="/dashboard" element={<DashboardPlaceholder />} />
+        </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
