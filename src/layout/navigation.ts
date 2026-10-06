@@ -25,3 +25,10 @@ export function navItemsFor(role: string | undefined): NavItem[] {
     (item) => item.path === '/dashboard' || (role !== undefined && item.roles.includes(role as Role))
   );
 }
+
+// navigation-map.md, "Default landing route per role — target design": every
+// role lands on /dashboard, which scopes its content by role. (The per-role
+// table next to it describes synkro-tech's MVP, not this host.)
+export function defaultPathFor(_role: string | undefined): string {
+  return '/dashboard';
+}
