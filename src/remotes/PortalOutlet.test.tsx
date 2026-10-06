@@ -8,7 +8,7 @@ describe('PortalOutlet', () => {
     const portal: PortalEntry = {
       name: 'products',
       kind: 'module-federation',
-      routePrefix: '/products',
+      routePrefixes: ['/products'],
       load: async () => ({ default: () => <div>remote products app</div> }),
     };
     render(<PortalOutlet portal={portal} />);
@@ -19,7 +19,7 @@ describe('PortalOutlet', () => {
     const portal: PortalEntry = {
       name: 'customers',
       kind: 'custom-element',
-      routePrefix: '/customers',
+      routePrefixes: ['/customers'],
       load: async () => 'synkro-customers-portal',
     };
     const { container } = render(<PortalOutlet portal={portal} />);
@@ -32,7 +32,7 @@ describe('PortalOutlet', () => {
     const portal: PortalEntry = {
       name: 'sales',
       kind: 'module-federation',
-      routePrefix: '/sales',
+      routePrefixes: ['/sales'],
       load: () => Promise.reject(new Error('remoteEntry.js 404')),
     };
     render(<PortalOutlet portal={portal} />);
