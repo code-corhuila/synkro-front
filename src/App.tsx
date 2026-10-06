@@ -2,21 +2,17 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { DevSignIn } from './core/auth/DevSignIn'
 import { RequireAuth } from './core/auth/RequireAuth'
 import { getSession } from './core/auth/session'
+import { UnmatchedRoute } from './layout/UnmatchedRoute'
+import { Shell } from './layout/Shell'
+import { PortalOutlet, portalRoutePaths } from './remotes/PortalOutlet'
+import { portals } from './remotes/registry'
 
 function DashboardPlaceholder() {
   return (
-    <main>
+    <>
       <h1>Dashboard</h1>
       <p>Signed in as {getSession()?.sub}.</p>
-    </main>
-  )
-}
-
-function NotFound() {
-  return (
-    <main>
-      <h1>Page not found</h1>
-    </main>
+    </>
   )
 }
 
@@ -31,14 +27,20 @@ function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         {devSignIn && <Route path="/login" element={<DevSignIn />} />}
         <Route
-          path="/dashboard"
           element={
             <RequireAuth>
-              <DashboardPlaceholder />
+              <Shell />
             </RequireAuth>
           }
-        />
-        <Route path="*" element={<NotFound />} />
+        >
+          <Route path="/dashboard" element={<DashboardPlaceholder />} />
+          {portals.flatMap((portal) =>
+            portalRoutePaths(portal).map((path) => (
+              <Route key={path} path={path} element={<PortalOutlet portal={portal} />} />
+            ))
+          )}
+        </Route>
+        <Route path="*" element={<UnmatchedRoute />} />
       </Routes>
     </BrowserRouter>
   )
