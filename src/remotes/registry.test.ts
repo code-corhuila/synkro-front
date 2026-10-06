@@ -40,6 +40,7 @@ describe('portal registry', () => {
       sales: ['/sales'],
     });
   });
+});
 
 describe('customers portal entry', () => {
   it('loads through the custom-element loader: entry file import, then the bounded whenDefined wait', () => {
