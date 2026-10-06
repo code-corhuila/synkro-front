@@ -4,7 +4,7 @@ import { RequireAuth } from './core/auth/RequireAuth'
 import { getSession } from './core/auth/session'
 import { NotFound } from './layout/NotFound'
 import { Shell } from './layout/Shell'
-import { PortalOutlet } from './remotes/PortalOutlet'
+import { PortalOutlet, portalRoutePaths } from './remotes/PortalOutlet'
 import { portals } from './remotes/registry'
 
 function DashboardPlaceholder() {
@@ -34,13 +34,11 @@ function App() {
           }
         >
           <Route path="/dashboard" element={<DashboardPlaceholder />} />
-          {portals.map((portal) => (
-            <Route
-              key={portal.name}
-              path={`${portal.routePrefix}/*`}
-              element={<PortalOutlet portal={portal} />}
-            />
-          ))}
+          {portals.flatMap((portal) =>
+            portalRoutePaths(portal).map((path) => (
+              <Route key={path} path={path} element={<PortalOutlet portal={portal} />} />
+            ))
+          )}
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
