@@ -2,7 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { DevSignIn } from './core/auth/DevSignIn'
 import { RequireAuth } from './core/auth/RequireAuth'
 import { getSession } from './core/auth/session'
-import { NotFound } from './layout/NotFound'
+import { UnmatchedRoute } from './layout/UnmatchedRoute'
 import { Shell } from './layout/Shell'
 import { PortalOutlet, portalRoutePaths } from './remotes/PortalOutlet'
 import { portals } from './remotes/registry'
@@ -40,7 +40,7 @@ function App() {
             ))
           )}
         </Route>
-        <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<UnmatchedRoute />} />
       </Routes>
     </BrowserRouter>
   )
