@@ -17,10 +17,21 @@ describe('portal registry', () => {
     expect(others.every((p) => p.kind === 'module-federation')).toBe(true);
   });
 
-  it('every entry has a route prefix and a load function', () => {
+  it('every entry has at least one route prefix and a load function', () => {
     for (const portal of portals) {
-      expect(portal.routePrefix.startsWith('/')).toBe(true);
+      expect(portal.routePrefixes.length).toBeGreaterThan(0);
+      expect(portal.routePrefixes.every((prefix) => prefix.startsWith('/'))).toBe(true);
       expect(typeof portal.load).toBe('function');
     }
+  });
+
+  it('owns the routes navigation-map.md assigns to each portal', () => {
+    const owned = Object.fromEntries(portals.map((p) => [p.name, p.routePrefixes]));
+    expect(owned).toEqual({
+      auth: ['/users', '/service-tokens'],
+      customers: ['/customers'],
+      products: ['/products', '/stock', '/stock-alerts'],
+      sales: ['/sales'],
+    });
   });
 });
