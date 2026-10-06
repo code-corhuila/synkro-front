@@ -1,3 +1,5 @@
+import { customersPortalEntryUrl, loadCustomElement } from './customElement';
+
 export type PortalKind = 'module-federation' | 'custom-element';
 
 export interface PortalEntry {
@@ -22,10 +24,10 @@ export const portals: PortalEntry[] = [
     name: 'customers',
     kind: 'custom-element',
     routePrefixes: ['/customers'],
-    load: async () => {
-      await customElements.whenDefined('synkro-customers-portal');
-      return 'synkro-customers-portal';
-    },
+    load: loadCustomElement({
+      tagName: 'synkro-customers-portal',
+      entryUrl: customersPortalEntryUrl,
+    }),
   },
   {
     name: 'products',
