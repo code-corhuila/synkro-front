@@ -2,27 +2,17 @@ import { fileURLToPath } from 'node:url'
 import federation from '@originjs/vite-plugin-federation'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
+import { federationConfig } from './src/federation.config'
 
 // https://vite.dev/config/
 // defineConfig comes from vitest/config so the `test` block is typed.
 export default defineConfig({
   plugins: [
     react(),
-    // @originjs/vite-plugin-federation has no `shareStrategy` option (that is
-    // Module Federation 2.0's runtime). It needs none here: each remote's
-    // remoteEntry.js is fetched only when its import() runs — on entering the
-    // portal's route — so a downed remote never blocks the host's startup.
-    // Remote URLs are placeholders until the real portals exist.
-    federation({
-      name: 'host',
-      remotes: {
-        authPortal: 'http://localhost:5174/assets/remoteEntry.js',
-        productsPortal: 'http://localhost:5175/assets/remoteEntry.js',
-        salesPortal: 'http://localhost:5176/assets/remoteEntry.js',
-      },
-      shared: ['react', 'react-dom'],
-    }),
+    federation(federationConfig),
   ],
+  // Remotes fetch the host entry from this port, so it cannot float.
+  preview: { port: 5173, strictPort: true },
   build: {
     target: 'esnext',
     modulePreload: false,
