@@ -7,7 +7,8 @@ import { copy } from './layout/copy'
 import { LoginUnavailable } from './layout/LoginUnavailable'
 import { NotFound } from './layout/NotFound'
 import { Shell } from './layout/Shell'
-import { PortalOutlet, portalRoutePaths } from './remotes/PortalOutlet'
+import { PortalOutlet } from './remotes/PortalOutlet'
+import { portalRoutePaths } from './remotes/portalRoutePaths'
 import { portals } from './remotes/registry'
 
 function DashboardPlaceholder() {
