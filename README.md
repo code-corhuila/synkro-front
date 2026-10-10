@@ -48,7 +48,7 @@ pins port 5173). It exposes exactly two modules, which remotes import as `shell/
 
 | Module | Source | Contract |
 |---|---|---|
-| `./apiClient` | `src/shell/apiClient.ts` | `apiClient.request<T>(path, { method, body, headers })` — a facade over the single client in `src/core/http/api.ts` (gateway address, `Authorization`, `X-Correlation-Id`, timeout, 401 closes the session) |
+| `./apiClient` | `src/shell/apiClient.ts` | `apiClient.request<T>(path, options)` — a facade over the single client in `src/core/http/api.ts` (gateway address, `Authorization`, `X-Correlation-Id`, timeout, 401 closes the session). Options are listed below |
 | `./session` | `src/shell/session.ts` | `session.user()` → `{ sub, role }` or `null`. The token is never reachable from it |
 
 `@originjs/vite-plugin-federation` rewrites the `__v__css__…` placeholders in the entry only when
@@ -56,6 +56,37 @@ they are wrapped in `'` or `"`, and Vite 8's minifier writes template literals, 
 a bare string and every exposed module threw `e.forEach is not a function`. `vite.config.ts` fixes
 the host's own entry (`src/federation.cssPlaceholder.ts`). A remote built with the same toolchain
 needs the same treatment.
+
+### Request options of `shell/apiClient`
+
+```ts
+apiClient.request<T>(path, {
+  method?: string,                 // default 'GET'
+  body?: unknown,                  // sent as JSON; only undefined means no body
+  headers?: Record<string, string>,
+  query?: Record<string, string | number | boolean | null | undefined>,
+  idempotencyKey?: string,         // sent as the Idempotency-Key header
+  signal?: AbortSignal,            // the caller's cancellation
+})
+```
+
+- **`query`** is appended to the path as `?a=1&b=x`, keys in insertion order, keys and values
+  URL-encoded. `undefined` and `null` are skipped, and booleans become `true` or `false`. A path
+  that already has a `?` gets `&`. JavaScript orders integer-like keys (`'2'`) before the others
+  before the client sees the object, so insertion order holds only for the other keys.
+- **`idempotencyKey`** is sent as `Idempotency-Key`. The client never generates a key: the caller
+  owns it and reuses the same value on retry. Without a key, no header is sent.
+- **`signal`**: when the caller aborts, the promise rejects with an `ApiClientError` whose `status`
+  is `0` and whose `body.error` is `'CANCELLED'` (message `'Request cancelled'`). A caller abort
+  never calls `onUnauthorized` and never touches the session. A signal that is already aborted
+  rejects without sending anything. The client's own 10-second timeout still rejects with
+  `'TIMEOUT'`, so the two errors can be told apart.
+- **`headers`** can set or replace any header except `Authorization` and `X-Correlation-Id`,
+  which the client owns. Header names are compared case-insensitively, so `content-type` replaces
+  `Content-Type`. An `idempotencyKey` takes precedence over an `Idempotency-Key` in `headers`.
+
+Errors raised with `status` `0`: `TIMEOUT`, `CANCELLED` and `NETWORK_ERROR`. Failed responses keep
+the common error envelope.
 
 ### Checking it end to end
 
