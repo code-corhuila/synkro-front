@@ -3,7 +3,8 @@ import { DevSignIn } from './core/auth/DevSignIn'
 import { RequireAuth } from './core/auth/RequireAuth'
 import { RequireRole } from './core/auth/RequireRole'
 import { getSession } from './core/auth/session'
-import { UnmatchedRoute } from './layout/UnmatchedRoute'
+import { LoginUnavailable } from './layout/LoginUnavailable'
+import { NotFound } from './layout/NotFound'
 import { Shell } from './layout/Shell'
 import { PortalOutlet, portalRoutePaths } from './remotes/PortalOutlet'
 import { portals } from './remotes/registry'
@@ -26,7 +27,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        {devSignIn && <Route path="/login" element={<DevSignIn />} />}
+        <Route path="/login" element={devSignIn ? <DevSignIn /> : <LoginUnavailable />} />
         <Route
           element={
             <RequireAuth>
@@ -48,8 +49,8 @@ function App() {
               />
             ))
           )}
+          <Route path="*" element={<NotFound />} />
         </Route>
-        <Route path="*" element={<UnmatchedRoute />} />
       </Routes>
     </BrowserRouter>
   )
