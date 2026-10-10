@@ -2,7 +2,7 @@
 // Test-only reader for the token stylesheets. It reads the CSS text the way a
 // reviewer would: the custom properties on :root, and the dark overrides
 // inside the prefers-color-scheme block. The app never parses CSS at runtime.
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -65,4 +65,19 @@ export function parseTokenSections(css: string): ThemeTokens {
     }
   }
   return { light, dark };
+}
+
+// Every stylesheet and component source under src/, keyed by its path relative
+// to src/ with forward slashes. Read from disk for the same reason as above.
+const SRC_DIR = resolve(THEME_DIR, '..');
+
+export function readSourceFiles(): Map<string, string> {
+  const files = new Map<string, string>();
+  for (const entry of readdirSync(SRC_DIR, { recursive: true })) {
+    const path = entry.replaceAll('\\', '/');
+    if (/\.(css|tsx?)$/.test(path)) {
+      files.set(path, readFileSync(resolve(SRC_DIR, path), 'utf8'));
+    }
+  }
+  return files;
 }
