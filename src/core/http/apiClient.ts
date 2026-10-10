@@ -21,6 +21,15 @@ export class ApiClientError extends Error {
 
 const TIMEOUT_MS = 10_000;
 
+// `undefined` and `null` mean "no value": the parameter is left out.
+function buildPath(path: string, query: RequestOptions['query'] = {}): string {
+  const pairs = Object.entries(query)
+    .filter(([, value]) => value !== undefined && value !== null)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+  if (pairs.length === 0) return path;
+  return `${path}${path.includes('?') ? '&' : '?'}${pairs.join('&')}`;
+}
+
 export interface RequestOptions {
   method?: string;
   body?: unknown;
@@ -42,7 +51,7 @@ export function createApiClient(
     const token = getToken();
 
     try {
-      const res = await fetch(`${baseUrl}${path}`, {
+      const res = await fetch(`${baseUrl}${buildPath(path, options.query)}`, {
         method: options.method ?? 'GET',
         headers: {
           'Content-Type': 'application/json',
