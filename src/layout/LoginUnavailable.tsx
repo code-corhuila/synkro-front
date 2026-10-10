@@ -15,7 +15,7 @@ export function LoginUnavailable() {
   }
   return (
     <main className="page">
-      <h1>Sign in</h1>
+      <h1 className="heading heading--page">Sign in</h1>
       <p>Sign-in is not available in this environment.</p>
     </main>
   );

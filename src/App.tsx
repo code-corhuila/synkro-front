@@ -12,7 +12,7 @@ import { portals } from './remotes/registry'
 function DashboardPlaceholder() {
   return (
     <>
-      <h1>Dashboard</h1>
+      <h1 className="heading heading--page">Dashboard</h1>
       <p>Signed in as {getSession()?.sub}.</p>
     </>
   )
