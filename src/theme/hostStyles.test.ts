@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { parseRules } from './cssRules';
 import { parsePublishedSheet, readSourceFiles, readThemeFile } from './tokenSheet';
 
 const published = parsePublishedSheet(readThemeFile('tokens.css'));
@@ -20,6 +21,19 @@ const LITERAL_COLOUR = /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?)\(|\b(?:white|black|re
 // The classes the host's own screens (header, navigation, not-found page,
 // unavailable notice) must use, and that a host stylesheet must define.
 const SCREEN_CLASSES = ['shell-header', 'shell-nav', 'page', 'portal-notice'];
+
+// A selector that starts with one of these elements styles it everywhere in the
+// page, portals included. Portals render inside the host's <main class="page">.
+const BARE_ELEMENT = /^(?:h1|h2|p|code)(?![\w-])/;
+const FROM_PAGE = /\.page\s+(?:h1|h2|p|code)(?![\w-])/;
+
+function selectorsMatching(pattern: RegExp): string[] {
+  return hostStylesheets.flatMap(([path, css]) =>
+    parseRules(css).flatMap((rule) =>
+      rule.selectors.filter((selector) => pattern.test(selector)).map((selector) => `${path}: ${selector}`)
+    )
+  );
+}
 
 function cssDeclarations(css: string): Array<[string, string]> {
   const withoutComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -75,5 +89,13 @@ describe('host styles', () => {
 
     expect(unstyled).toEqual([]);
     expect([...usedClasses]).toEqual(expect.arrayContaining(SCREEN_CLASSES));
+  });
+
+  it('scopes host typography to host-owned classes, never to bare h1, h2, p or code', () => {
+    expect(selectorsMatching(BARE_ELEMENT)).toEqual([]);
+  });
+
+  it('does not style headings or text by descent from .page, which holds portal content', () => {
+    expect(selectorsMatching(FROM_PAGE)).toEqual([]);
   });
 });
