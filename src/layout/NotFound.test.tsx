@@ -64,7 +64,7 @@ describe('route that does not exist', () => {
       visit('/definitely-not-a-route');
 
       expect(window.location.pathname).toBe('/login');
-      expect(screen.getByLabelText(/development token/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/token de desarrollo/i)).toBeInTheDocument();
       expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
     });
 
@@ -73,7 +73,7 @@ describe('route that does not exist', () => {
       visit('/definitely-not-a-route');
 
       expect(window.location.pathname).toBe('/login');
-      expect(screen.getByText(/sign-in is not available/i)).toBeInTheDocument();
+      expect(screen.getByText(/el inicio de sesión no está disponible/i)).toBeInTheDocument();
     });
   });
 

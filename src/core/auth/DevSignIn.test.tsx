@@ -17,10 +17,10 @@ describe('DevSignIn', () => {
       </MemoryRouter>
     );
 
-    await userEvent.type(screen.getByLabelText(/development token/i), 'not-a-jwt');
-    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    await userEvent.type(screen.getByLabelText(/token de desarrollo/i), 'not-a-jwt');
+    await userEvent.click(screen.getByRole('button', { name: /ingresar/i }));
 
-    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Ese token de desarrollo no es válido.');
     expect(getSession()).toBeNull();
   });
 });
