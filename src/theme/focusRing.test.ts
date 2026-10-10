@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { contrastRatio } from './contrast';
 import { parseRules, type CssRule } from './cssRules';
-import { parsePublishedSheet, readSourceFiles, readThemeFile } from './tokenSheet';
+import { parsePublishedSheet, readSourceFiles, readThemeFile, resolveToken } from './tokenSheet';
 
 const published = parsePublishedSheet(readThemeFile('tokens.css'));
 const hostStylesheets = [...readSourceFiles()].filter(([path]) => path.endsWith('.css') && !path.startsWith('theme/'));
@@ -23,11 +23,7 @@ function ringToken(rule: CssRule | undefined): string | undefined {
 const lightRing = ringToken(focusRules.find((rule) => rule.media === null));
 const darkRing = ringToken(focusRules.find((rule) => rule.media === DARK));
 
-const valueIn = (theme: 'light' | 'dark', token: string | undefined): string => {
-  const value = (theme === 'dark' && published.dark.get(token ?? '')) || published.light.get(token ?? '');
-  if (!value) throw new Error(`${token} is not a published token`);
-  return value;
-};
+const valueIn = (theme: 'light' | 'dark', token: string | undefined): string => resolveToken(published, theme, token ?? '');
 
 describe('focus ring', () => {
   it('is one shared :focus-visible rule in the base stylesheet, not one per component', () => {
