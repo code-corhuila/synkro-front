@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { Navigate } from 'react-router-dom';
 import { getSession, subscribeSession } from '../core/auth/session';
+import { copy } from './copy';
 import { defaultPathFor } from './navigation';
 
 // /login when no sign-in exists in this environment (development sign-in off,
@@ -15,8 +16,8 @@ export function LoginUnavailable() {
   }
   return (
     <main className="page">
-      <h1 className="heading heading--page">Sign in</h1>
-      <p>Sign-in is not available in this environment.</p>
+      <h1 className="heading heading--page">{copy.signIn.title}</h1>
+      <p>{copy.signIn.unavailable}</p>
     </main>
   );
 }

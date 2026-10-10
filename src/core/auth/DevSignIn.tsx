@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { copy } from '../../layout/copy';
 import { signInWithDevToken } from './session';
 
 export function DevSignIn() {
@@ -13,7 +14,7 @@ export function DevSignIn() {
     e.preventDefault();
     const ok = signInWithDevToken(value.trim());
     if (!ok) {
-      setError('That does not look like a valid development token.');
+      setError(copy.signIn.invalidToken);
       return;
     }
     setError(null);
@@ -22,10 +23,10 @@ export function DevSignIn() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <label htmlFor="dev-token">Development token</label>
+      <label htmlFor="dev-token">{copy.signIn.tokenLabel}</label>
       <input id="dev-token" value={value} onChange={(e) => setValue(e.target.value)} />
       {error && <p role="alert">{error}</p>}
-      <button type="submit">Sign in</button>
+      <button type="submit">{copy.signIn.submit}</button>
     </form>
   );
 }
