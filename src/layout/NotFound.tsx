@@ -13,7 +13,7 @@ export function NotFound() {
 
   return (
     <section className="not-found">
-      <h1>{copy.notFound.title}</h1>
+      <h1 className="heading heading--page">{copy.notFound.title}</h1>
       <p>{copy.notFound.message}</p>
       <Link to={defaultPathFor(session?.role)} className="not-found__link">
         {copy.notFound.backToHome}
