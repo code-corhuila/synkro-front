@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
+    "coverage": "vitest run --coverage",
     "check:production-build": "node scripts/check-production-build.mjs dist"
   },
   "dependencies": {
