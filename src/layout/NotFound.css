@@ -1,0 +1,13 @@
+/* The 404 screen, rendered inside the shell. Tokens only. */
+
+.not-found p {
+  margin-bottom: var(--space-4);
+  color: var(--color-text-secondary);
+}
+
+.not-found__link {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+}
