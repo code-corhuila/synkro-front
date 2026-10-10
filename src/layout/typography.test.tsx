@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import App from '../App';
+import App from '../app/App';
 import { setSession } from '../core/auth/session';
 import { parseRules } from '../theme/cssRules';
 import { readSourceFiles } from '../theme/tokenSheet';
