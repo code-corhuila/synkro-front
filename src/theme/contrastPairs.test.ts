@@ -1,11 +1,8 @@
-/// <reference types="node" />
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { contrastRatio } from './contrast';
-import { parsePublishedSheet } from './tokenSheet';
+import { parsePublishedSheet, readThemeFile } from './tokenSheet';
 
-// Read with node:fs (see designTokens.test.ts for why ?raw is not used).
-const published = parsePublishedSheet(readFileSync(new URL('./tokens.css', import.meta.url), 'utf8'));
+const published = parsePublishedSheet(readThemeFile('tokens.css'));
 
 type Theme = 'light' | 'dark';
 
