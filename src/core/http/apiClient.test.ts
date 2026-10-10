@@ -187,4 +187,77 @@ describe('apiClient', () => {
       expect(sentHeaders(1)['Idempotency-Key']).toBe('sale-7f3:step-2');
     });
   });
+
+  describe('caller cancellation', () => {
+    // Stays pending until the signal aborts, then rejects the way fetch does.
+    function hangUntilAborted() {
+      return (_url: RequestInfo | URL, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+        });
+    }
+
+    it('a signal already aborted on entry rejects with CANCELLED without sending', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+      const caller = new AbortController();
+      caller.abort();
+
+      await expect(client.request('/api/v1/products', { signal: caller.signal })).rejects.toMatchObject({
+        status: 0,
+        body: { error: 'CANCELLED', message: 'Request cancelled' },
+      });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('aborting during the request rejects with CANCELLED', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+      const caller = new AbortController();
+      fetchMock.mockImplementation(hangUntilAborted());
+
+      const pending = client.request('/api/v1/products', { signal: caller.signal });
+      caller.abort();
+
+      await expect(pending).rejects.toMatchObject({
+        status: 0,
+        body: { error: 'CANCELLED', message: 'Request cancelled' },
+      });
+    });
+
+    it('a caller abort never calls onUnauthorized', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+      const caller = new AbortController();
+      fetchMock.mockImplementation(hangUntilAborted());
+
+      const pending = client.request('/api/v1/products', { signal: caller.signal });
+      caller.abort();
+
+      await expect(pending).rejects.toThrow();
+      expect(onUnauthorized).not.toHaveBeenCalled();
+    });
+
+    it('the client timeout still rejects with TIMEOUT when the caller does not abort', async () => {
+      vi.useFakeTimers();
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+      const caller = new AbortController();
+      fetchMock.mockImplementation(hangUntilAborted());
+
+      const assertion = expect(client.request('/api/v1/products', { signal: caller.signal })).rejects.toMatchObject({
+        status: 0,
+        body: { error: 'TIMEOUT', message: 'Request timed out' },
+      });
+      await vi.advanceTimersByTimeAsync(10_000);
+      await assertion;
+    });
+
+    it('removes its listener from the caller signal once the request settles', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+      const caller = new AbortController();
+      const removeListener = vi.spyOn(caller.signal, 'removeEventListener');
+      fetchMock.mockImplementation(respondWith({ ok: true }, 200));
+
+      await client.request('/api/v1/products', { signal: caller.signal });
+
+      expect(removeListener).toHaveBeenCalledWith('abort', expect.any(Function));
+    });
+  });
 });
