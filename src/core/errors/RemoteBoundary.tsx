@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react';
+import './RemoteBoundary.css';
 
 interface Props {
   load: () => Promise<unknown>;
@@ -61,7 +62,7 @@ export class RemoteBoundary extends Component<Props, BoundaryState> {
 
   render() {
     if (this.state.hasError) {
-      return <p role="status">{this.props.portalName} is not available right now.</p>;
+      return <p role="status" className="portal-notice">{this.props.portalName} is not available right now.</p>;
     }
     return (
       <RemoteBoundaryInner load={this.props.load} portalName={this.props.portalName}>

@@ -16,7 +16,7 @@ export function UnmatchedRoute() {
     // /login itself is unmatched when no sign-in route is registered (dev
     // sign-in off, no auth portal yet); redirecting again would loop.
     return (
-      <main>
+      <main className="page">
         <h1>Sign in</h1>
         <p>Sign-in is not available in this environment.</p>
       </main>
