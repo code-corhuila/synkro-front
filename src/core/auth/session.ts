@@ -13,12 +13,18 @@ export function getSession(): Session | null {
   return current;
 }
 
+// Only the development sign-in keeps a session across a reload. In a build
+// without it the session lives in memory, and TOKEN_KEY is not in the bundle:
+// scripts/check-production-build.mjs fails the build job if it is. The flag is
+// read where it is used, so the bundler can drop what it guards.
 export function setSession(session: Session | null) {
   current = session;
-  if (session) {
-    sessionStorage.setItem(TOKEN_KEY, JSON.stringify(session));
-  } else {
-    sessionStorage.removeItem(TOKEN_KEY);
+  if (import.meta.env.VITE_DEV_SIGN_IN === 'true') {
+    if (session) {
+      sessionStorage.setItem(TOKEN_KEY, JSON.stringify(session));
+    } else {
+      sessionStorage.removeItem(TOKEN_KEY);
+    }
   }
   listeners.forEach((l) => l());
 }
@@ -29,6 +35,7 @@ export function subscribeSession(listener: () => void): () => void {
 }
 
 export function restoreSession() {
+  if (import.meta.env.VITE_DEV_SIGN_IN !== 'true') return;
   const raw = sessionStorage.getItem(TOKEN_KEY);
   if (!raw) return;
   try {
