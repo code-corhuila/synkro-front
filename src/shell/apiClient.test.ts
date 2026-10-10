@@ -31,6 +31,25 @@ describe('shell/apiClient facade', () => {
     expect(requestMock).toHaveBeenCalledWith('/api/v1/products', undefined);
   });
 
+  it('passes query, idempotencyKey and signal through unchanged', async () => {
+    requestMock.mockResolvedValue({ id: 2 });
+    const caller = new AbortController();
+    const options = {
+      method: 'POST',
+      query: { notify: true, page: 1 },
+      idempotencyKey: 'sale-1:step-1',
+      signal: caller.signal,
+    };
+
+    await apiClient.request('/api/v1/sales', options);
+
+    const [path, passed] = requestMock.mock.calls[0];
+    expect(path).toBe('/api/v1/sales');
+    expect(passed?.query).toEqual({ notify: true, page: 1 });
+    expect(passed?.idempotencyKey).toBe('sale-1:step-1');
+    expect(passed?.signal).toBe(caller.signal);
+  });
+
   it('rethrows the very same error the client raised', async () => {
     const error = new ApiClientError(404, { error: 'NOT_FOUND', message: 'No such product', traceId: 't' });
     requestMock.mockRejectedValue(error);
