@@ -1,4 +1,4 @@
-import { Component, type ReactNode } from 'react';
+import { Component, useEffect, useState, type ReactNode } from 'react';
 import { copy } from '../../layout/copy';
 import './RemoteBoundary.css';
 
@@ -8,45 +8,35 @@ interface Props {
   children: (loaded: unknown) => ReactNode;
 }
 
-interface State {
-  status: 'loading' | 'loaded' | 'error';
-  value: unknown;
-  thrownError: Error | null;
-}
+type Load = { status: 'loading' } | { status: 'loaded'; value: unknown } | { status: 'error'; error: Error };
 
-class RemoteBoundaryInner extends Component<Props, State> {
-  state: State = { status: 'loading', value: null, thrownError: null };
+// Runs the portal's load and renders what it gives. A failed load is re-thrown
+// during render, which is what lets the boundary below catch a failed dynamic
+// import() as a render error and show the unavailable notice.
+function PortalLoader({ load, children }: Pick<Props, 'load' | 'children'>) {
+  const [result, setResult] = useState<Load>({ status: 'loading' });
 
-  componentDidMount() {
-    this.props
-      .load()
-      .then((value) => this.setState({ status: 'loaded', value }))
-      .catch((error: unknown) =>
-        this.setState({
-          status: 'error',
-          // A rejection is not guaranteed to be an Error (or truthy at all);
-          // normalized so render() always has something to throw.
-          thrownError: error instanceof Error ? error : new Error(String(error)),
-        })
-      );
-  }
-
-  render() {
-    if (this.state.status === 'error' && this.state.thrownError) {
-      // Re-thrown here so a parent error boundary (below) can catch it via
-      // componentDidCatch/getDerivedStateFromError — this is what lets a
-      // failed dynamic import() become a caught render error.
-      throw this.state.thrownError;
-    }
-    if (this.state.status === 'loaded') {
-      return this.props.children(this.state.value);
-    }
-    return (
-      <p role="status" className="portal-loading">
-        {copy.portal.loading}
-      </p>
+  useEffect(() => {
+    let current = true;
+    load().then(
+      (value) => current && setResult({ status: 'loaded', value }),
+      (error: unknown) =>
+        // A rejection is not guaranteed to be an Error (or truthy at all);
+        // normalized so render always has something to throw.
+        current && setResult({ status: 'error', error: error instanceof Error ? error : new Error(String(error)) })
     );
-  }
+    return () => {
+      current = false;
+    };
+  }, [load]);
+
+  if (result.status === 'error') throw result.error;
+  if (result.status === 'loaded') return children(result.value);
+  return (
+    <p role="status" className="portal-loading">
+      {copy.portal.loading}
+    </p>
+  );
 }
 
 interface BoundaryState {
@@ -69,10 +59,6 @@ export class RemoteBoundary extends Component<Props, BoundaryState> {
     if (this.state.hasError) {
       return <p role="status" className="portal-notice">{copy.portal.unavailable}</p>;
     }
-    return (
-      <RemoteBoundaryInner load={this.props.load} portalName={this.props.portalName}>
-        {this.props.children}
-      </RemoteBoundaryInner>
-    );
+    return <PortalLoader load={this.props.load}>{this.props.children}</PortalLoader>;
   }
 }
