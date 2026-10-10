@@ -84,7 +84,7 @@ describe('host shell, assembled', () => {
 
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe('http://gateway/api/v1/products');
-    expect((init?.headers as Record<string, string>)['Authorization']).toBe(`Bearer ${token}`);
+    expect(init?.headers).toMatchObject({ Authorization: `Bearer ${token}` });
 
     expect(session.getSession()).toBeNull();
     expect(sessionStorage.getItem('synkro_dev_token')).toBeNull();
