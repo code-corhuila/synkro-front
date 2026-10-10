@@ -260,4 +260,95 @@ describe('apiClient', () => {
       expect(removeListener).toHaveBeenCalledWith('abort', expect.any(Function));
     });
   });
+
+  describe('request body', () => {
+    beforeEach(() => {
+      fetchMock.mockImplementation(respondWith({ ok: true }, 200));
+    });
+
+    const sentBody = () => fetchMock.mock.calls[0][1]?.body;
+
+    it.each([
+      ['0', 0, '0'],
+      ['false', false, 'false'],
+      ['an empty string', '', '""'],
+      ['null', null, 'null'],
+    ])('sends a falsy body: %s', async (_label, body, expected) => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/sales', { method: 'POST', body });
+
+      expect(sentBody()).toBe(expected);
+    });
+
+    it('sends no body when the body is undefined', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/sales', { method: 'POST' });
+
+      expect(sentBody()).toBeUndefined();
+    });
+  });
+
+  describe('protected headers', () => {
+    beforeEach(() => {
+      fetchMock.mockImplementation(respondWith({ ok: true }, 200));
+    });
+
+    const sentHeaders = () => fetchMock.mock.calls[0][1]?.headers as Record<string, string>;
+    const valuesNamed = (name: string) =>
+      Object.entries(sentHeaders())
+        .filter(([key]) => key.toLowerCase() === name.toLowerCase())
+        .map(([, value]) => value);
+
+    it('a caller cannot replace Authorization', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/products', { headers: { Authorization: 'Bearer forged' } });
+
+      expect(valuesNamed('Authorization')).toEqual(['Bearer test-token']);
+    });
+
+    it.each(['authorization', 'AUTHORIZATION'])('a caller cannot replace Authorization written as %s', async (name) => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/products', { headers: { [name]: 'Bearer forged' } });
+
+      expect(valuesNamed('Authorization')).toEqual(['Bearer test-token']);
+    });
+
+    it('a caller cannot add Authorization when there is no session', async () => {
+      const client = createApiClient('http://gateway', () => null, onUnauthorized);
+
+      await client.request('/api/v1/products', { headers: { Authorization: 'Bearer forged' } });
+
+      expect(valuesNamed('Authorization')).toEqual([]);
+    });
+
+    it('a caller cannot replace X-Correlation-Id, whatever its case', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/products', { headers: { 'x-correlation-id': 'mine' } });
+
+      const correlationIds = valuesNamed('X-Correlation-Id');
+      expect(correlationIds).toHaveLength(1);
+      expect(correlationIds[0]).not.toBe('mine');
+    });
+
+    it('other caller headers pass through', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/products', { headers: { 'X-Source': 'portal' } });
+
+      expect(valuesNamed('X-Source')).toEqual(['portal']);
+    });
+
+    it('a caller Content-Type replaces the default, not sits beside it', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/uploads', { headers: { 'content-type': 'text/plain' } });
+
+      expect(valuesNamed('Content-Type')).toEqual(['text/plain']);
+    });
+  });
 });
