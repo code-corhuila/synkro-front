@@ -58,6 +58,7 @@ export function createApiClient(
           'X-Correlation-Id': correlationId,
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
           ...options.headers,
+          ...(options.idempotencyKey !== undefined ? { 'Idempotency-Key': options.idempotencyKey } : {}),
         },
         body: options.body ? JSON.stringify(options.body) : undefined,
         signal: controller.signal,
