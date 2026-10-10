@@ -25,6 +25,9 @@ export interface RequestOptions {
   method?: string;
   body?: unknown;
   headers?: Record<string, string>;
+  query?: Record<string, string | number | boolean | null | undefined>;
+  idempotencyKey?: string;
+  signal?: AbortSignal;
 }
 
 export function createApiClient(
