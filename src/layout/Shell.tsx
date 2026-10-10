@@ -1,7 +1,9 @@
 import { useSyncExternalStore } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { getSession, subscribeSession } from '../core/auth/session';
+import { copy } from './copy';
 import { navItemsFor } from './navigation';
+import './Shell.css';
 
 export function Shell() {
   // Subscribed for the same reason as RequireAuth: a session change while
@@ -10,10 +12,10 @@ export function Shell() {
 
   return (
     <>
-      <header>
+      <header className="shell-header">
         <strong>Synkro</strong>
-        {session && <span> {session.sub} ({session.role})</span>}
-        <nav aria-label="Main">
+        {session && <span> {session.sub} ({copy.roles[session.role] ?? session.role})</span>}
+        <nav aria-label={copy.navigation.label} className="shell-nav">
           <ul>
             {navItemsFor(session?.role).map((item) => (
               <li key={item.path}>
@@ -23,7 +25,7 @@ export function Shell() {
           </ul>
         </nav>
       </header>
-      <main>
+      <main className="page">
         <Outlet />
       </main>
     </>

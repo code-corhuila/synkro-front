@@ -1,0 +1,62 @@
+/*
+ * The development sign-in: a card on the page canvas, usable from 360 px up.
+ * Tokens only. design-system.md, Forms: the input sits on the page colour so
+ * it reads as sunken inside the card, and an invalid field takes the error tone.
+ */
+
+.sign-in {
+  box-sizing: border-box;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+}
+
+.sign-in__card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 24rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-md);
+}
+
+.sign-in__card .heading--page {
+  margin: 0;
+}
+
+.sign-in__notice {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.field__label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.field__input {
+  box-sizing: border-box;
+  width: 100%;
+  font: inherit;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+
+.field__input[aria-invalid='true'] {
+  border-color: var(--color-error-700);
+}
+
+.field__error {
+  margin: 0;
+  color: var(--color-error-700);
+  font-size: var(--font-size-sm);
+}

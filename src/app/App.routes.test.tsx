@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import App from './App';
-import { setSession } from './core/auth/session';
+import { setSession } from '../core/auth/session';
 
-vi.mock('./remotes/registry', () => ({
+vi.mock('../remotes/registry', () => ({
   portals: [
     {
       name: 'products',
@@ -20,7 +20,11 @@ vi.mock('./remotes/registry', () => ({
   ],
 }));
 
+// The matrix lets only SALESPERSON open /stock; every other route here is open to ADMIN.
+const roleFor = (path: string) => (path.startsWith('/stock/') || path === '/stock' ? 'SALESPERSON' : 'ADMIN');
+
 function visit(path: string) {
+  setSession({ token: 't', sub: 'alice', role: roleFor(path) });
   window.history.pushState({}, '', path);
   render(<App />);
 }

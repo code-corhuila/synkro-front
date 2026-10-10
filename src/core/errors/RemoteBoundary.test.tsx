@@ -24,7 +24,7 @@ describe('RemoteBoundary', () => {
       </div>
     );
     await waitFor(() =>
-      expect(screen.getByText(/products.*not available/i)).toBeInTheDocument()
+      expect(screen.getByText('Este módulo no está disponible en este momento.')).toBeInTheDocument()
     );
     // the rest of the page must still be there — the point of the boundary
     expect(screen.getByText('rest of the layout')).toBeInTheDocument();
@@ -43,7 +43,7 @@ describe('RemoteBoundary', () => {
         </RemoteBoundary>
       </div>
     );
-    await waitFor(() => expect(screen.getByText(/products.*not available/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Este módulo no está disponible en este momento.')).toBeInTheDocument());
     expect(screen.getByText('sales content')).toBeInTheDocument();
   });
 
@@ -54,6 +54,51 @@ describe('RemoteBoundary', () => {
         {() => <div>products content</div>}
       </RemoteBoundary>
     );
-    await waitFor(() => expect(screen.getByText(/products.*not available/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Este módulo no está disponible en este momento.')).toBeInTheDocument());
+  });
+
+  it('does not put the portal name in the notice a person reads', async () => {
+    const load = vi.fn().mockRejectedValue(new Error('down'));
+    render(
+      <RemoteBoundary load={load} portalName="products">
+        {() => <div>products content</div>}
+      </RemoteBoundary>
+    );
+
+    expect(await screen.findByRole('status')).not.toHaveTextContent(/products/i);
+  });
+
+  describe('while the portal loads', () => {
+    it('shows an accessible loading message, then the portal', async () => {
+      let finish: (value: unknown) => void = () => {};
+      const load = vi.fn(() => new Promise<unknown>((resolve) => (finish = resolve)));
+      render(
+        <RemoteBoundary load={load} portalName="products">
+          {() => <div>products content</div>}
+        </RemoteBoundary>
+      );
+
+      expect(screen.getByRole('status')).toHaveTextContent('Cargando módulo…');
+      expect(screen.queryByText('products content')).not.toBeInTheDocument();
+
+      finish('ok');
+
+      expect(await screen.findByText('products content')).toBeInTheDocument();
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+
+    it('gives way to the unavailable notice, not to a second message, when the load fails', async () => {
+      const load = vi.fn().mockRejectedValue(new Error('down'));
+      render(
+        <RemoteBoundary load={load} portalName="products">
+          {() => <div>products content</div>}
+        </RemoteBoundary>
+      );
+
+      await waitFor(() =>
+        expect(screen.getByRole('status')).toHaveTextContent('Este módulo no está disponible en este momento.')
+      );
+      expect(screen.getAllByRole('status')).toHaveLength(1);
+    });
   });
 });

@@ -1,0 +1,139 @@
+/*
+ * Token blocks copied verbatim from 12-ux-ui/design-system.md (synkro-docs).
+ * The tests build their expected token list from these blocks. When the doc
+ * changes, re-copy the blocks here.
+ *
+ * [light] = Colors, light theme   [dark] = Colors, dark theme
+ * [shared] = Typography, Spacing  [light] = Borders and shadows, light
+ * [dark] = Borders and shadows, dark
+ */
+/* [light] */
+/* Base palette — navy and red from the reference gradient */
+--color-primary-50:  #FDECE4;   /* Lightest — subtle backgrounds, selected-row tint */
+--color-primary-100: #F0D8CC;   /* Soft badges, hover backgrounds */
+--color-primary-300: #C65A3B;   /* Icons, large headings (≥20px/700), decorative accents ONLY — 4.26:1 on white: passes large text (≥3:1), fails normal text (<4.5:1) */
+--color-primary-500: #B51A28;   /* Default — buttons, links, active nav (6.68:1 on white with white text on top) */
+--color-primary-700: #931623;   /* Hover / pressed state */
+--color-primary-900: #641A2E;   /* Darkest — Secondary button text/border (12.15:1 on white) */
+
+--color-neutral-50:  #FFF9F6;   /* Page canvas — white with a peach veil */
+--color-neutral-900: #161E2F;   /* Ink — the gradient's navy, reused as text */
+
+/* Semantic colors */
+--color-success-50:  #E7F7EF;
+--color-success-500: #1F9D6D;
+--color-success-700: #1A855D;   /* Badge text, button backgrounds (4.58:1) */
+
+--color-warning-50:  #FDF1E2;
+--color-warning-500: #E08A1E;
+--color-warning-700: #A86716;   /* Badge text, button backgrounds (4.53:1) */
+
+--color-error-50:    #FDE9EF;
+--color-error-500:   #E23A6E;
+--color-error-700:   #D73768;   /* Badge text, button backgrounds (4.54:1) — a different red from primary, see Brand identity */
+
+--color-info-50:  #FDECE4;
+--color-info-700: #A86716;   /* This palette has no teal of its own; "info" borrows warning's tone instead of competing with the brand red — keeps a neutral message from reading as an alarm */
+
+/* Role alias — resolves differently per theme, see Buttons */
+--color-secondary-action: var(--color-primary-900);
+
+/* Text */
+--color-text-primary:   #161E2F;  /* Ink (16.66:1 on white) */
+--color-text-secondary: #7C645E;  /* Warm muted (5.47:1 on white) */
+--color-text-disabled:  #D9C7BE;  /* Disabled controls are exempt from AA contrast */
+
+/* Backgrounds */
+--color-bg-page:    #FFF9F6;
+--color-bg-card:    #FFFFFF;
+--color-bg-overlay: rgba(22, 30, 47, 0.45);
+/* [dark] */
+/* Surface — its own independent dark scale, NOT a tint of --color-primary */
+--color-bg-page:      #12141C;
+--color-bg-card:       #161E2F;   /* surface */
+--color-bg-card-alt:   #242F49;   /* surface-2 — hover, alternate table row */
+--color-border:        #3B4459;
+--color-bg-overlay:    rgba(0, 0, 0, 0.55);
+
+/* Primary — same red/coral family, retuned for text on a dark surface */
+--color-primary-300: #FFA586;   /* Coral — Secondary text/border, icons, large figures (8.71:1 on surface) */
+--color-primary-500: #A82C24;   /* Default — button background (6.88:1 with white text) */
+--color-primary-700: #C4342B;   /* Hover / pressed — LIGHTER than default, see note below */
+
+/* Role alias — resolves differently per theme, see Buttons */
+--color-secondary-action: var(--color-primary-300);
+
+/* Semantic colors — same meaning as the light theme, inverted technique:
+   saturated, bright text instead of a dark "-700", over a translucent
+   background instead of a solid pastel. Same variable names as light. */
+--color-success-50:  rgba(52, 211, 153, 0.16);
+--color-success-700: #34D399;   /* 8.67:1 on surface */
+--color-warning-50:  rgba(251, 191, 36, 0.16);
+--color-warning-700: #FBBF24;
+--color-error-50:    rgba(251, 113, 133, 0.16);
+--color-error-700:   #FB7185;   /* 6.19:1 on surface */
+--color-info-50:  rgba(251, 191, 36, 0.16);  /* same warning-borrow as light, see that note */
+--color-info-700: #FBBF24;
+
+/* Text */
+--color-text-primary:   #F5EDE6;  /* 15.88:1 on --color-bg-page */
+--color-text-secondary: #B3A79C;  /* 7.81:1 on --color-bg-page */
+--color-text-disabled:  #5C554E;  /* Disabled controls are exempt from AA contrast */
+/* [shared] */
+--font-family-heading: 'Big Shoulders Display', sans-serif;  /* Headings, page titles, stat values */
+--font-family-sans:    'IBM Plex Sans', sans-serif;            /* Body copy, labels, buttons */
+--font-family-mono:    'JetBrains Mono', monospace;            /* SKUs, prices, stock counts, dates */
+
+--font-size-xs:   0.75rem;   /* 12px */
+--font-size-sm:   0.875rem;  /* 14px */
+--font-size-base: 1rem;      /* 16px */
+--font-size-lg:   1.25rem;   /* 20px */
+--font-size-xl:   1.563rem;  /* 25px */
+--font-size-2xl:  1.953rem;  /* 31px */
+--font-size-3xl:  2.441rem;  /* 39px — login masthead only */
+
+--font-weight-regular:  400;
+--font-weight-medium:   500;
+--font-weight-semibold: 600;
+--font-weight-bold:     700;
+--font-weight-black:    900;   /* Exclusive to Big Shoulders Display headings */
+
+--line-height-tight:  1.2;
+--line-height-normal: 1.5;
+--line-height-loose:  1.8;
+--space-1:  0.25rem;   /* 4px */
+--space-2:  0.5rem;    /* 8px */
+--space-3:  0.75rem;   /* 12px */
+--space-4:  1rem;      /* 16px */
+--space-6:  1.5rem;    /* 24px */
+--space-8:  2rem;      /* 32px */
+--space-12: 3rem;      /* 48px */
+--space-16: 4rem;      /* 64px */
+/* [light] */
+/* Border radius — tighter than a typical B2B tool on purpose: navy + red +
+   condensed type read "industrial/warning signage," and a straighter
+   radius reinforces that reading instead of softening it. */
+--radius-sm: 4px;
+--radius-md: 8px;    /* Default — cards, buttons, inputs */
+--radius-lg: 14px;   /* Modals, large panels */
+--radius-full: 9999px;  /* Badges, avatars */
+
+/* Shadows — tinted with the primary red */
+--shadow-sm: 0 2px 6px rgba(181, 26, 40, 0.08);
+--shadow-md: 0 6px 18px rgba(181, 26, 40, 0.14), 0 2px 5px rgba(22, 30, 47, 0.06);
+--shadow-lg: 0 14px 32px rgba(181, 26, 40, 0.18);
+/* [dark] */
+/* Radius: identical to the light theme (4/8/14/full) — radius is shape,
+   not color, and doesn't change between light and dark. */
+--radius-sm: 4px;
+--radius-md: 8px;
+--radius-lg: 14px;
+--radius-full: 9999px;
+
+/* Shadows — this is where dark breaks from "tinted with primary": a red
+   tint over an already near-black background is practically invisible.
+   What actually separates a card from the canvas in dark mode is an
+   ambient black shadow. */
+--shadow-sm: 0 4px 10px rgba(0, 0, 0, 0.30);
+--shadow-md: 0 10px 22px rgba(0, 0, 0, 0.35);
+--shadow-lg: 0 20px 44px rgba(0, 0, 0, 0.40);
