@@ -1,5 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import './theme/tokens.css'
+import './theme/fonts'
 import './index.css'
 import App from './App.tsx'
 import { restoreSession } from './core/auth/session'
