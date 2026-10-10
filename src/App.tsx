@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { DevSignIn } from './core/auth/DevSignIn'
 import { RequireAuth } from './core/auth/RequireAuth'
+import { RequireRole } from './core/auth/RequireRole'
 import { getSession } from './core/auth/session'
 import { UnmatchedRoute } from './layout/UnmatchedRoute'
 import { Shell } from './layout/Shell'
@@ -36,7 +37,15 @@ function App() {
           <Route path="/dashboard" element={<DashboardPlaceholder />} />
           {portals.flatMap((portal) =>
             portalRoutePaths(portal).map((path) => (
-              <Route key={path} path={path} element={<PortalOutlet portal={portal} />} />
+              <Route
+                key={path}
+                path={path}
+                element={
+                  <RequireRole>
+                    <PortalOutlet portal={portal} />
+                  </RequireRole>
+                }
+              />
             ))
           )}
         </Route>

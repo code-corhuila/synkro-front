@@ -6,8 +6,8 @@
 // Module Federation 2.0's runtime). It needs none here: each remote's
 // remoteEntry.js is fetched only when its import() runs — on entering the
 // portal's route — so a downed remote never blocks the host's startup.
-import reactDomPackage from 'react-dom/package.json';
-import reactPackage from 'react/package.json';
+import reactDomPackage from 'react-dom/package.json' with { type: 'json' };
+import reactPackage from 'react/package.json' with { type: 'json' };
 
 export const federationConfig = {
   name: 'host',
