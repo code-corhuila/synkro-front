@@ -2,27 +2,32 @@ import { fileURLToPath } from 'node:url'
 import federation from '@originjs/vite-plugin-federation'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
+import { federationConfig } from './src/federation.config.ts'
+import { resolveCssPlaceholders } from './src/federation.cssPlaceholder.ts'
 
 // https://vite.dev/config/
 // defineConfig comes from vitest/config so the `test` block is typed.
 export default defineConfig({
   plugins: [
     react(),
-    // @originjs/vite-plugin-federation has no `shareStrategy` option (that is
-    // Module Federation 2.0's runtime). It needs none here: each remote's
-    // remoteEntry.js is fetched only when its import() runs — on entering the
-    // portal's route — so a downed remote never blocks the host's startup.
-    // Remote URLs are placeholders until the real portals exist.
-    federation({
-      name: 'host',
-      remotes: {
-        authPortal: 'http://localhost:5174/assets/remoteEntry.js',
-        productsPortal: 'http://localhost:5175/assets/remoteEntry.js',
-        salesPortal: 'http://localhost:5176/assets/remoteEntry.js',
+    federation(federationConfig),
+    {
+      // Runs after the federation plugin has had its turn at the entry chunk.
+      name: 'synkro:resolve-federation-css-placeholders',
+      generateBundle: {
+        order: 'post',
+        handler(_options, bundle) {
+          for (const chunk of Object.values(bundle)) {
+            if (chunk.type === 'chunk' && chunk.fileName === 'assets/remoteEntry.js') {
+              chunk.code = resolveCssPlaceholders(chunk.code)
+            }
+          }
+        },
       },
-      shared: ['react', 'react-dom'],
-    }),
+    },
   ],
+  // Remotes fetch the host entry from this port, so it cannot float.
+  preview: { port: 5173, strictPort: true },
   build: {
     target: 'esnext',
     modulePreload: false,
@@ -32,6 +37,14 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test-setup.ts',
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/**/*.test.{ts,tsx}', 'src/test-setup.ts', 'src/**/*.d.ts', 'src/**/__stubs__/**'],
+      reporter: ['text', 'lcov'],
+      // Frontend floor from the team's testing strategy: 70% of statements.
+      thresholds: { statements: 70 },
+    },
     // Vite resolves every string-literal import() at transform time, even
     // one that is never called, so remote specifiers need a target here.
     alias: [
