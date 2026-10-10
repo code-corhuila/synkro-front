@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { contrastRatio } from './contrast';
-import { parsePublishedSheet, readThemeFile } from './tokenSheet';
+import { parsePublishedSheet, readThemeFile, resolveToken } from './tokenSheet';
 
 const published = parsePublishedSheet(readThemeFile('tokens.css'));
 
@@ -39,14 +39,9 @@ const STATED_PAIRS: StatedPair[] = [
   { theme: 'dark', foreground: '--color-text-secondary', background: '--color-bg-page', stated: 7.81, minimum: 4.5 },
 ];
 
-// A token's value in a theme: the dark override when the dark theme has one,
-// otherwise the light value. A hex literal (white text) is used as written.
-function valueOf(theme: Theme, token: string): string {
-  if (token.startsWith('#')) return token;
-  const value = (theme === 'dark' && published.dark.get(token)) || published.light.get(token);
-  if (value === undefined) throw new Error(`${token} is not published for the ${theme} theme`);
-  return value;
-}
+// A hex literal (white text) is used as written; a token resolves in the theme.
+const valueOf = (theme: Theme, token: string): string =>
+  token.startsWith('#') ? token : resolveToken(published, theme, token);
 
 describe('contrast of the stated token pairs', () => {
   it.each(STATED_PAIRS)('$theme: $foreground on $background', ({ theme, foreground, background, stated, minimum }) => {
