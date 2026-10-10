@@ -1,3 +1,5 @@
+import { copy } from './copy';
+
 export type Role = 'ADMIN' | 'SALESPERSON' | 'INVENTORY';
 
 export interface NavItem {
@@ -12,14 +14,14 @@ const DASHBOARD_PATH = '/dashboard';
 // It is the only place that says who may open what: the menu and the route
 // guard both read it.
 export const navItems: readonly NavItem[] = [
-  { label: 'Dashboard', path: DASHBOARD_PATH, roles: ['ADMIN', 'SALESPERSON', 'INVENTORY'] },
-  { label: 'Customers', path: '/customers', roles: ['ADMIN', 'SALESPERSON'] },
-  { label: 'Products', path: '/products', roles: ['ADMIN', 'INVENTORY'] },
-  { label: 'Stock', path: '/stock', roles: ['SALESPERSON'] },
-  { label: 'Stock alerts', path: '/stock-alerts', roles: ['ADMIN', 'INVENTORY'] },
-  { label: 'Sales', path: '/sales', roles: ['ADMIN', 'SALESPERSON'] },
-  { label: 'Users', path: '/users', roles: ['ADMIN'] },
-  { label: 'Service tokens', path: '/service-tokens', roles: ['ADMIN'] },
+  { label: copy.navigation.dashboard, path: DASHBOARD_PATH, roles: ['ADMIN', 'SALESPERSON', 'INVENTORY'] },
+  { label: copy.navigation.customers, path: '/customers', roles: ['ADMIN', 'SALESPERSON'] },
+  { label: copy.navigation.products, path: '/products', roles: ['ADMIN', 'INVENTORY'] },
+  { label: copy.navigation.stock, path: '/stock', roles: ['SALESPERSON'] },
+  { label: copy.navigation.stockAlerts, path: '/stock-alerts', roles: ['ADMIN', 'INVENTORY'] },
+  { label: copy.navigation.sales, path: '/sales', roles: ['ADMIN', 'SALESPERSON'] },
+  { label: copy.navigation.users, path: '/users', roles: ['ADMIN'] },
+  { label: copy.navigation.serviceTokens, path: '/service-tokens', roles: ['ADMIN'] },
 ];
 
 export function navItemsFor(role: string | undefined): NavItem[] {

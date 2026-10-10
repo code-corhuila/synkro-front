@@ -3,6 +3,7 @@ import { DevSignIn } from './core/auth/DevSignIn'
 import { RequireAuth } from './core/auth/RequireAuth'
 import { RequireRole } from './core/auth/RequireRole'
 import { getSession } from './core/auth/session'
+import { copy } from './layout/copy'
 import { LoginUnavailable } from './layout/LoginUnavailable'
 import { NotFound } from './layout/NotFound'
 import { Shell } from './layout/Shell'
@@ -12,8 +13,8 @@ import { portals } from './remotes/registry'
 function DashboardPlaceholder() {
   return (
     <>
-      <h1 className="heading heading--page">Dashboard</h1>
-      <p>Signed in as {getSession()?.sub}.</p>
+      <h1 className="heading heading--page">{copy.dashboard.title}</h1>
+      <p>{copy.dashboard.signedInAs(getSession()?.sub ?? '')}</p>
     </>
   )
 }

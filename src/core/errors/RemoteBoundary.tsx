@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react';
+import { copy } from '../../layout/copy';
 import './RemoteBoundary.css';
 
 interface Props {
@@ -40,7 +41,11 @@ class RemoteBoundaryInner extends Component<Props, State> {
     if (this.state.status === 'loaded') {
       return this.props.children(this.state.value);
     }
-    return null; // loading — a spinner can be added without changing this contract
+    return (
+      <p role="status" className="portal-loading">
+        {copy.portal.loading}
+      </p>
+    );
   }
 }
 
@@ -62,7 +67,7 @@ export class RemoteBoundary extends Component<Props, BoundaryState> {
 
   render() {
     if (this.state.hasError) {
-      return <p role="status" className="portal-notice">{this.props.portalName} is not available right now.</p>;
+      return <p role="status" className="portal-notice">{copy.portal.unavailable}</p>;
     }
     return (
       <RemoteBoundaryInner load={this.props.load} portalName={this.props.portalName}>
