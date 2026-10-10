@@ -1,6 +1,18 @@
+/// <reference types="node" />
 // Test-only reader for the token stylesheets. It reads the CSS text the way a
 // reviewer would: the custom properties on :root, and the dark overrides
 // inside the prefers-color-scheme block. The app never parses CSS at runtime.
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Vitest hands CSS imports back as empty strings and jsdom's URL differs from
+// Node's, so the files are read from disk, next to this module.
+const THEME_DIR = dirname(fileURLToPath(import.meta.url));
+
+export function readThemeFile(name: string): string {
+  return readFileSync(resolve(THEME_DIR, name), 'utf8');
+}
 
 export type Declarations = Map<string, string>;
 
