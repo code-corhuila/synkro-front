@@ -1,16 +1,12 @@
-/// <reference types="node" />
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { parsePublishedSheet, parseTokenSections } from './tokenSheet';
+import { parsePublishedSheet, parseTokenSections, readThemeFile } from './tokenSheet';
 
-// Read with node:fs. Vitest returns CSS modules, including ?raw imports, as an
+// Read from disk, not through ?raw imports: Vitest returns CSS imports as an
 // empty string, which would make every comparison below pass vacuously.
-const readText = (relativeUrl: string) => readFileSync(new URL(relativeUrl, import.meta.url), 'utf8');
-
-const published = parsePublishedSheet(readText('./tokens.css'));
+const published = parsePublishedSheet(readThemeFile('tokens.css'));
 // The expected names and values come from the design system's own token
 // blocks (see the fixture's header), not from this file.
-const documented = parseTokenSections(readText('./__fixtures__/design-system.tokens.css'));
+const documented = parseTokenSections(readThemeFile('__fixtures__/design-system.tokens.css'));
 
 // Dark-only names that 12-ux-ui/design-system.md defines with no light value.
 // Publishing them would introduce names the light theme does not have, and a
