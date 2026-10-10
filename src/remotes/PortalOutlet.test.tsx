@@ -36,6 +36,6 @@ describe('PortalOutlet', () => {
       load: () => Promise.reject(new Error('remoteEntry.js 404')),
     };
     render(<PortalOutlet portal={portal} />);
-    expect(await screen.findByText(/sales.*not available/i)).toBeInTheDocument();
+    expect(await screen.findByText('Este módulo no está disponible en este momento.')).toBeInTheDocument();
   });
 });
