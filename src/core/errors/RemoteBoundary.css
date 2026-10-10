@@ -13,3 +13,9 @@
   color: var(--color-error-700);
   font-weight: var(--font-weight-semibold);
 }
+
+/* Shown while a portal's code is loading, in the place the portal will take. */
+.portal-loading {
+  margin: var(--space-4) 0;
+  color: var(--color-text-secondary);
+}
