@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { copy } from '../../layout/copy';
 import { Button } from '../../shared/ui/Button';
+import { devSignInCopy } from './devSignInCopy';
 import { signInWithDevToken } from './session';
 import './DevSignIn.css';
 
@@ -20,7 +21,7 @@ export function DevSignIn() {
     e.preventDefault();
     const ok = signInWithDevToken(value.trim());
     if (!ok) {
-      setError(copy.signIn.invalidToken);
+      setError(devSignInCopy.invalidToken);
       return;
     }
     setError(null);
@@ -31,9 +32,9 @@ export function DevSignIn() {
     <main className="sign-in">
       <form className="sign-in__card" onSubmit={handleSubmit}>
         <h1 className="heading heading--page">{copy.signIn.title}</h1>
-        <p className="sign-in__notice">{copy.signIn.devOnly}</p>
+        <p className="sign-in__notice">{devSignInCopy.devOnly}</p>
         <label htmlFor="dev-token" className="field__label">
-          {copy.signIn.tokenLabel}
+          {devSignInCopy.tokenLabel}
         </label>
         <input
           id="dev-token"
@@ -50,7 +51,7 @@ export function DevSignIn() {
             {error}
           </p>
         )}
-        <Button type="submit">{copy.signIn.submit}</Button>
+        <Button type="submit">{devSignInCopy.submit}</Button>
       </form>
     </main>
   );
