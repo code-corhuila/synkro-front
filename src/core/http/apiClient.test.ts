@@ -79,4 +79,66 @@ describe('apiClient', () => {
       body: { error: 'BUSINESS_RULE_VIOLATION', message: 'insufficient stock' },
     });
   });
+
+  describe('query parameters', () => {
+    beforeEach(() => {
+      fetchMock.mockImplementation(respondWith({ ok: true }, 200));
+    });
+
+    const requestedUrl = () => fetchMock.mock.calls[0][0];
+
+    it('appends the query to the path, keys in insertion order', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/products', { query: { page: 1, limit: 20, name: 'mouse' } });
+
+      expect(requestedUrl()).toBe('http://gateway/api/v1/products?page=1&limit=20&name=mouse');
+    });
+
+    it('encodes keys and values', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/products', { query: { 'a b': 'x&y=z', q: 'é' } });
+
+      expect(requestedUrl()).toBe('http://gateway/api/v1/products?a%20b=x%26y%3Dz&q=%C3%A9');
+    });
+
+    it('skips undefined and null values', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/products', {
+        query: { page: 1, name: undefined, brand: null, active: undefined },
+      });
+
+      expect(requestedUrl()).toBe('http://gateway/api/v1/products?page=1');
+    });
+
+    it('sends booleans as true and false, including false', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/products', { query: { active: true, archived: false } });
+
+      expect(requestedUrl()).toBe('http://gateway/api/v1/products?active=true&archived=false');
+    });
+
+    it('appends with & when the path already has a query', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/products?sort=name', { query: { page: 2 } });
+
+      expect(requestedUrl()).toBe('http://gateway/api/v1/products?sort=name&page=2');
+    });
+
+    it('adds no question mark when no query is given or every value is skipped', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/products');
+      await client.request('/api/v1/products', { query: { page: undefined, name: null } });
+
+      expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+        'http://gateway/api/v1/products',
+        'http://gateway/api/v1/products',
+      ]);
+    });
+  });
 });
