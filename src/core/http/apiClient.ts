@@ -34,6 +34,36 @@ function buildPath(path: string, query: RequestOptions['query'] = {}): string {
   return `${path}${path.includes('?') ? '&' : '?'}${pairs.join('&')}`;
 }
 
+// The client owns these two: a caller can neither replace nor add them.
+const PROTECTED_HEADERS = new Set(['authorization', 'x-correlation-id']);
+
+// A caller header replaces a default with the same name, whatever its case:
+// `content-type` replaces `Content-Type` rather than being sent beside it.
+function mergeHeaders(defaults: Record<string, string>, extra: Record<string, string> = {}) {
+  const merged = { ...defaults };
+  for (const [name, value] of Object.entries(extra)) {
+    if (PROTECTED_HEADERS.has(name.toLowerCase())) continue;
+    for (const existing of Object.keys(merged)) {
+      if (existing.toLowerCase() === name.toLowerCase()) delete merged[existing];
+    }
+    merged[name] = value;
+  }
+  return merged;
+}
+
+// The idempotency key is the caller's explicit option, so it wins over a
+// header of the same name passed in `headers`.
+function buildHeaders(options: RequestOptions, correlationId: string, token: string | null) {
+  const defaults = {
+    'Content-Type': 'application/json',
+    'X-Correlation-Id': correlationId,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+  const withCaller = mergeHeaders(defaults, options.headers);
+  if (options.idempotencyKey === undefined) return withCaller;
+  return mergeHeaders(withCaller, { 'Idempotency-Key': options.idempotencyKey });
+}
+
 export interface RequestOptions {
   method?: string;
   body?: unknown;
@@ -68,14 +98,8 @@ export function createApiClient(
     try {
       const res = await fetch(`${baseUrl}${buildPath(path, options.query)}`, {
         method: options.method ?? 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Correlation-Id': correlationId,
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          ...options.headers,
-          ...(options.idempotencyKey !== undefined ? { 'Idempotency-Key': options.idempotencyKey } : {}),
-        },
-        body: options.body ? JSON.stringify(options.body) : undefined,
+        headers: buildHeaders(options, correlationId, token),
+        body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
         signal: controller.signal,
       });
 
