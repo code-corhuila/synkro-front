@@ -21,6 +21,10 @@ export class ApiClientError extends Error {
 
 const TIMEOUT_MS = 10_000;
 
+function cancelledError(traceId: string) {
+  return new ApiClientError(0, { error: 'CANCELLED', message: 'Request cancelled', traceId });
+}
+
 // `undefined` and `null` mean "no value": the parameter is left out.
 function buildPath(path: string, query: RequestOptions['query'] = {}): string {
   const pairs = Object.entries(query)
@@ -45,9 +49,20 @@ export function createApiClient(
   onUnauthorized: () => void
 ) {
   async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     const correlationId = crypto.randomUUID();
+    if (options.signal?.aborted) throw cancelledError(correlationId);
+
+    // One controller carries both the timeout and the caller's cancellation,
+    // so fetch sees a single signal. The timer sets `timedOut` before it
+    // aborts; the caller's abort does not, which is how the two are told apart.
+    const controller = new AbortController();
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, TIMEOUT_MS);
+    const forwardCancel = () => controller.abort();
+    options.signal?.addEventListener('abort', forwardCancel);
     const token = getToken();
 
     try {
@@ -79,12 +94,14 @@ export function createApiClient(
       return (await res.json()) as T;
     } catch (err) {
       if (err instanceof ApiClientError) throw err;
-      if ((err as Error).name === 'AbortError') {
+      if (timedOut) {
         throw new ApiClientError(0, { error: 'TIMEOUT', message: 'Request timed out', traceId: correlationId });
       }
+      if (options.signal?.aborted) throw cancelledError(correlationId);
       throw new ApiClientError(0, { error: 'NETWORK_ERROR', message: 'Network error', traceId: correlationId });
     } finally {
       clearTimeout(timer);
+      options.signal?.removeEventListener('abort', forwardCancel);
     }
   }
 
