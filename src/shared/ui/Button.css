@@ -1,0 +1,33 @@
+/* design-system.md, Buttons. Tokens only. */
+
+.button {
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* The label is the canvas colour, the nearest to white that exists in both
+   themes, which --color-neutral-50 keeps in dark. */
+.button--primary {
+  background: var(--color-primary-500);
+  color: var(--color-neutral-50);
+}
+
+.button--primary:hover:not(:disabled) {
+  background: var(--color-primary-700);
+}
+
+/* The role alias flips per theme, so this rule never branches on it. */
+.button--secondary {
+  background: transparent;
+  color: var(--color-secondary-action);
+  border: 1px solid var(--color-secondary-action);
+}

@@ -30,6 +30,7 @@ export const copy = {
   signIn: {
     title: 'Iniciar sesión',
     unavailable: 'El inicio de sesión no está disponible en este entorno.',
+    devOnly: 'Esta pantalla solo existe en compilaciones de desarrollo.',
     tokenLabel: 'Token de desarrollo',
     submit: 'Ingresar',
     invalidToken: 'Ese token de desarrollo no es válido.',
