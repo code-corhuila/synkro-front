@@ -81,3 +81,13 @@ export function readSourceFiles(): Map<string, string> {
   }
   return files;
 }
+
+// A token's value in a theme: the dark override when the dark theme has one,
+// otherwise the light value, following `var(--other)` aliases such as
+// --color-secondary-action, which resolves differently per theme.
+export function resolveToken(sheet: ThemeTokens, theme: 'light' | 'dark', name: string): string {
+  const value = (theme === 'dark' ? sheet.dark.get(name) : undefined) ?? sheet.light.get(name);
+  if (value === undefined) throw new Error(`${name} is not a published token`);
+  const alias = value.match(/^var\((--[\w-]+)\)$/);
+  return alias ? resolveToken(sheet, theme, alias[1]) : value;
+}
