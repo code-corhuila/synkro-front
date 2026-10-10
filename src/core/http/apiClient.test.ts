@@ -141,4 +141,50 @@ describe('apiClient', () => {
       ]);
     });
   });
+
+  describe('idempotency key', () => {
+    beforeEach(() => {
+      fetchMock.mockImplementation(respondWith({ ok: true }, 200));
+    });
+
+    const sentHeaders = (call = 0) => fetchMock.mock.calls[call][1]?.headers as Record<string, string>;
+    const headerNames = (call = 0) => Object.keys(sentHeaders(call)).map((name) => name.toLowerCase());
+
+    it('sends the key as the Idempotency-Key header with the exact value', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/sales', { method: 'POST', body: {}, idempotencyKey: 'sale-7f3:step-2' });
+
+      expect(sentHeaders()['Idempotency-Key']).toBe('sale-7f3:step-2');
+    });
+
+    it('sends no Idempotency-Key header when no key is given', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/sales', { method: 'POST', body: {} });
+
+      expect(headerNames()).not.toContain('idempotency-key');
+    });
+
+    it('never invents a key: two calls without one send none', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+
+      await client.request('/api/v1/sales', { method: 'POST', body: {} });
+      await client.request('/api/v1/sales', { method: 'POST', body: {} });
+
+      expect(headerNames(0)).not.toContain('idempotency-key');
+      expect(headerNames(1)).not.toContain('idempotency-key');
+    });
+
+    it('a retry with the same key sends the same header value', async () => {
+      const client = createApiClient('http://gateway', getToken, onUnauthorized);
+      const options = { method: 'POST', body: {}, idempotencyKey: 'sale-7f3:step-2' };
+
+      await client.request('/api/v1/sales', options);
+      await client.request('/api/v1/sales', options);
+
+      expect(sentHeaders(0)['Idempotency-Key']).toBe('sale-7f3:step-2');
+      expect(sentHeaders(1)['Idempotency-Key']).toBe('sale-7f3:step-2');
+    });
+  });
 });
