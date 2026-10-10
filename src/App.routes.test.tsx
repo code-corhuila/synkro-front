@@ -20,7 +20,11 @@ vi.mock('./remotes/registry', () => ({
   ],
 }));
 
+// The matrix lets only SALESPERSON open /stock; every other route here is open to ADMIN.
+const roleFor = (path: string) => (path.startsWith('/stock/') || path === '/stock' ? 'SALESPERSON' : 'ADMIN');
+
 function visit(path: string) {
+  setSession({ token: 't', sub: 'alice', role: roleFor(path) });
   window.history.pushState({}, '', path);
   render(<App />);
 }
