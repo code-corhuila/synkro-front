@@ -107,3 +107,28 @@ dependency of this repo, so the check is manual:
    `synkro_dev_token`; `localStorage` is empty.
 6. Stop the portal and reload `/products`: the "not available right now" notice shows and the menu
    keeps working.
+
+## Design tokens
+
+The host publishes the tokens of `12-ux-ui/design-system.md` (synkro-docs) as CSS custom properties
+on `:root`, in `src/theme/tokens.css`. It is the only place they are defined. Portals read them and
+never redefine them.
+
+- Read a token with `var(--name)`, for example `color: var(--color-text-primary)`. This works in
+  plain CSS, CSS Modules and Tailwind arbitrary values (`bg-[var(--color-primary-500)]`).
+- The names are the contract. Do not rename a token or add one here; a new token starts as a change
+  to the design system.
+- Never redefine a token in a portal (`:root { --color-primary-500: … }`, or a copied palette). It
+  forks the design in that portal alone.
+- The dark theme is selected by the operating system (`prefers-color-scheme`). A portal does nothing
+  for it: the same names resolve to the dark values.
+- The host loads the fonts (`src/theme/fonts.ts`). A portal uses `var(--font-family-heading)`,
+  `var(--font-family-sans)` or `var(--font-family-mono)` and imports no font.
+
+Eight tokens have no dark value, so the dark theme inherits the light one. Use them only where the
+light value is also right on a dark surface:
+`--color-primary-50`, `--color-primary-100`, `--color-primary-900`, `--color-neutral-50`,
+`--color-neutral-900`, `--color-success-500`, `--color-warning-500`, `--color-error-500`.
+
+The design system also names `--color-bg-card-alt` and `--color-border` for the dark theme only.
+They are not published yet, because the doc gives no light value for them.
