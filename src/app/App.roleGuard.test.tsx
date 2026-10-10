@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import App from './App';
-import { setSession } from './core/auth/session';
+import { setSession } from '../core/auth/session';
 
 const loads = vi.hoisted(() => ({ products: vi.fn(), sales: vi.fn(), auth: vi.fn() }));
 
-vi.mock('./remotes/registry', () => ({
+vi.mock('../remotes/registry', () => ({
   portals: [
     {
       name: 'products',
