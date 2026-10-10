@@ -1,31 +1,35 @@
 import { fileURLToPath } from 'node:url'
 import federation from '@originjs/vite-plugin-federation'
 import react from '@vitejs/plugin-react'
+import type { Plugin } from 'vite'
 import { defineConfig } from 'vitest/config'
 import { federationConfig } from './src/federation.config.ts'
 import { resolveCssPlaceholders } from './src/federation.cssPlaceholder.ts'
 
+// Runs after the federation plugin has had its turn at the entry chunk.
+const resolveCssPlaceholdersPlugin: Plugin = {
+  name: 'synkro:resolve-federation-css-placeholders',
+  generateBundle: {
+    order: 'post',
+    handler(_options, bundle) {
+      for (const chunk of Object.values(bundle)) {
+        if (chunk.type === 'chunk' && chunk.fileName === 'assets/remoteEntry.js') {
+          chunk.code = resolveCssPlaceholders(chunk.code)
+        }
+      }
+    },
+  },
+}
+
+const federationPlugins = [federation(federationConfig), resolveCssPlaceholdersPlugin]
+
 // https://vite.dev/config/
 // defineConfig comes from vitest/config so the `test` block is typed.
-export default defineConfig({
-  plugins: [
-    react(),
-    federation(federationConfig),
-    {
-      // Runs after the federation plugin has had its turn at the entry chunk.
-      name: 'synkro:resolve-federation-css-placeholders',
-      generateBundle: {
-        order: 'post',
-        handler(_options, bundle) {
-          for (const chunk of Object.values(bundle)) {
-            if (chunk.type === 'chunk' && chunk.fileName === 'assets/remoteEntry.js') {
-              chunk.code = resolveCssPlaceholders(chunk.code)
-            }
-          }
-        },
-      },
-    },
-  ],
+export default defineConfig(({ mode }) => ({
+  // Under Vitest (mode "test") the federation plugin would rewrite the portal
+  // imports into http URLs before the alias below applies, so the tests would
+  // reach for the network. They alias the remotes to a stub instead.
+  plugins: [react(), ...(mode === 'test' ? [] : federationPlugins)],
   // Remotes fetch the host entry from this port, so it cannot float.
   preview: { port: 5173, strictPort: true },
   build: {
@@ -54,4 +58,4 @@ export default defineConfig({
       },
     ],
   },
-})
+}))
