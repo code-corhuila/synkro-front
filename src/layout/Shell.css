@@ -1,0 +1,63 @@
+/*
+ * The signed-in frame: header, brand, session line and the main navigation.
+ * Colours and type come from the published tokens only.
+ */
+
+.shell-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-6);
+  padding: var(--space-4) var(--space-6);
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.shell-header strong {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-black);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.shell-header span {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.shell-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shell-nav a {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  padding: var(--space-1) 0;
+}
+
+.shell-nav a:hover {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+}
+
+/* The current item is marked by weight and underline, not by colour alone.
+   The brand red is a button fill: as text it is too dark on the dark surface. */
+.shell-nav a.active {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+}
+
+.shell-nav a:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

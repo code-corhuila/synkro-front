@@ -73,7 +73,7 @@ const SRC_DIR = resolve(THEME_DIR, '..');
 
 export function readSourceFiles(): Map<string, string> {
   const files = new Map<string, string>();
-  for (const entry of readdirSync(SRC_DIR, { recursive: true })) {
+  for (const entry of readdirSync(SRC_DIR, { recursive: true, encoding: 'utf8' })) {
     const path = entry.replaceAll('\\', '/');
     if (/\.(css|tsx?)$/.test(path)) {
       files.set(path, readFileSync(resolve(SRC_DIR, path), 'utf8'));
