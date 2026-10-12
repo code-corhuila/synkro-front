@@ -227,3 +227,19 @@ docker compose --env-file .env -f deploy/compose.yml up --build   # http://local
 with `npm ci`: the common-files check, `lint` (`npm run lint`), `build` (`npm run build`, then
 `npm run check:production-build`) and `test` (`npm run coverage`, which enforces the 70% statements
 floor from `testing-strategy.md`).
+
+## Root composition delivery
+
+The deployed Products remote is served through the host at
+`http://localhost:5173/remotes/products/assets/remoteEntry.js`. Its container
+publishes no host port and joins `platform`. Its Vite base is `/remotes/products/`;
+the host proxies that prefix to the internal portal. Local Vite preview remains
+a separate development command. The host build accepts `VITE_PRODUCTS_PORTAL_ENTRY`
+for this route. Three other portal packages remain external dependencies.
+Run `python3 tests/test_root_deploy.py` for deployment configuration checks.
+
+## Root Sales integration
+
+Compose builds the Sales entry from `VITE_SALES_PORTAL_ENTRY`, defaulting to `http://localhost:5173/remotes/sales/assets/remoteEntry.js`; Products retains its own entry. Both inputs reach Vite at build time. Nginx resolves the internal `synkro-sales-portal:80` on platform and proxies the complete `/remotes/sales/` subtree, removing only that prefix. Configure the Sales owning build with this same base. Keep `VITE_DEV_SIGN_IN=false` for deployed images.
+
+The remote boundary remounts when portal identity changes. An unavailable Sales download leaves shell/navigation usable; navigating to Products loads it without reloading, and returning to Sales attempts a fresh load. This does not add automatic retry while staying on the failed route. The real navigation regression preserves the same shell element through failure, Products navigation and successful Sales return.

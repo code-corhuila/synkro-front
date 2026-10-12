@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import federation from '@originjs/vite-plugin-federation'
 import react from '@vitejs/plugin-react'
-import type { Plugin } from 'vite'
+import { loadEnv, type Plugin } from 'vite'
 import { defineConfig } from 'vitest/config'
 import { federationConfig } from './src/federation.config.ts'
 import { resolveCssPlaceholders } from './src/federation.cssPlaceholder.ts'
@@ -21,7 +21,13 @@ const resolveCssPlaceholdersPlugin: Plugin = {
   },
 }
 
-const federationPlugins = [federation(federationConfig), resolveCssPlaceholdersPlugin]
+const federationPlugins = (mode: string) => {
+  const env = loadEnv(mode, process.cwd(), 'VITE_')
+  return [federation({ ...federationConfig, remotes: { ...federationConfig.remotes,
+    productsPortal: env.VITE_PRODUCTS_PORTAL_ENTRY || federationConfig.remotes.productsPortal,
+    salesPortal: env.VITE_SALES_PORTAL_ENTRY || federationConfig.remotes.salesPortal,
+  } }), resolveCssPlaceholdersPlugin]
+}
 
 // https://vite.dev/config/
 // defineConfig comes from vitest/config so the `test` block is typed.
@@ -29,7 +35,7 @@ export default defineConfig(({ mode }) => ({
   // Under Vitest (mode "test") the federation plugin would rewrite the portal
   // imports into http URLs before the alias below applies, so the tests would
   // reach for the network. They alias the remotes to a stub instead.
-  plugins: [react(), ...(mode === 'test' ? [] : federationPlugins)],
+  plugins: [react(), ...(mode === 'test' ? [] : federationPlugins(mode))],
   // Remotes fetch the host entry from this port, so it cannot float.
   preview: { port: 5173, strictPort: true },
   build: {
