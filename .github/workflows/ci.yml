@@ -2,15 +2,21 @@ name: ci
 
 on:
   push:
-    branches: [develop, qa, main]
+    branches: [develop, qa, main, fix/root-composition-integration]
   pull_request:
     branches: [develop, qa, main]
+
+permissions:
+  contents: read
 
 jobs:
   check-common-files:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Verify root deployment contract
+        run: python3 tests/test_root_deploy.py
       - name: Verify common repository files exist
         run: |
           set -e
@@ -23,6 +29,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,6 +41,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -49,6 +57,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
