@@ -4,9 +4,12 @@ export interface Session {
   token: string;
   sub: string;
   role: string;
+  expiresAt?: number;
 }
 
 let current: Session | null = null;
+let generation = 0;
+export function sessionGeneration() { return generation; }
 const listeners = new Set<() => void>();
 
 export function getSession(): Session | null {
@@ -17,7 +20,8 @@ export function getSession(): Session | null {
 // without it the session lives in memory, and TOKEN_KEY is not in the bundle:
 // scripts/check-production-build.mjs fails the build job if it is. The flag is
 // read where it is used, so the bundler can drop what it guards.
-export function setSession(session: Session | null) {
+export function setSession(session: Session | null, replace = true) {
+  if (replace) generation++;
   current = session;
   if (import.meta.env.VITE_DEV_SIGN_IN === 'true') {
     if (session) {

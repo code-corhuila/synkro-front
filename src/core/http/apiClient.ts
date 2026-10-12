@@ -10,12 +10,14 @@ export interface ApiErrorBody {
 export class ApiClientError extends Error {
   readonly status: number;
   readonly body: ApiErrorBody;
+  readonly retryAt?: number;
 
-  constructor(status: number, body: ApiErrorBody) {
+  constructor(status: number, body: ApiErrorBody, retryAt?: number) {
     super(body.message);
     this.name = 'ApiClientError';
     this.status = status;
     this.body = body;
+    this.retryAt = retryAt;
   }
 }
 
@@ -78,7 +80,7 @@ export function createApiClient(
   getToken: () => string | null,
   onUnauthorized: () => void
 ) {
-  async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  async function send<T>(path: string, options: RequestOptions = {}, auth?: { token: string | null }): Promise<T> {
     const correlationId = crypto.randomUUID();
     if (options.signal?.aborted) throw cancelledError(correlationId);
 
@@ -93,7 +95,7 @@ export function createApiClient(
     }, TIMEOUT_MS);
     const forwardCancel = () => controller.abort();
     options.signal?.addEventListener('abort', forwardCancel);
-    const token = getToken();
+    const token = auth ? auth.token : getToken();
 
     try {
       const res = await fetch(`${baseUrl}${buildPath(path, options.query)}`, {
@@ -103,7 +105,7 @@ export function createApiClient(
         signal: controller.signal,
       });
 
-      if (res.status === 401) {
+      if (res.status === 401 && !auth) {
         onUnauthorized();
       }
 
@@ -111,7 +113,9 @@ export function createApiClient(
         const body = await res
           .json()
           .catch(() => ({ error: 'INTERNAL_ERROR', message: 'Unexpected error', traceId: correlationId }));
-        throw new ApiClientError(res.status, body);
+        const retry = res.headers?.get('Retry-After');
+        const retryAt = retry ? (/^\d+$/.test(retry) ? Date.now() + Number(retry) * 1000 : Date.parse(retry)) : undefined;
+        throw new ApiClientError(res.status, body, Number.isFinite(retryAt) ? retryAt : undefined);
       }
 
       if (res.status === 204) return undefined as T;
@@ -129,5 +133,10 @@ export function createApiClient(
     }
   }
 
-  return { request };
+  return {
+    request: <T>(path: string, options?: RequestOptions) => send<T>(path, options),
+    // Internal capability only; shell/apiClient exports request alone.
+    authenticate: (operation: 'login' | 'refresh' | 'logout', body: unknown, signal?: AbortSignal, token?: string) =>
+      send<unknown>(`/api/v1/auth/${operation}`, { method: 'POST', body, signal }, { token: operation === 'logout' ? token ?? null : null }),
+  };
 }
