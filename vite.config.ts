@@ -25,6 +25,7 @@ const federationPlugins = (mode: string) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_')
   return [federation({ ...federationConfig, remotes: { ...federationConfig.remotes,
     productsPortal: env.VITE_PRODUCTS_PORTAL_ENTRY || federationConfig.remotes.productsPortal,
+    salesPortal: env.VITE_SALES_PORTAL_ENTRY || federationConfig.remotes.salesPortal,
   } }), resolveCssPlaceholdersPlugin]
 }
 
