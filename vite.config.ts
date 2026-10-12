@@ -26,6 +26,7 @@ const federationPlugins = (mode: string) => {
   return [federation({ ...federationConfig, remotes: { ...federationConfig.remotes,
     productsPortal: env.VITE_PRODUCTS_PORTAL_ENTRY || federationConfig.remotes.productsPortal,
     salesPortal: env.VITE_SALES_PORTAL_ENTRY || federationConfig.remotes.salesPortal,
+    authPortal: env.VITE_AUTH_PORTAL_ENTRY || federationConfig.remotes.authPortal,
   } }), resolveCssPlaceholdersPlugin]
 }
 
@@ -53,11 +54,20 @@ export default defineConfig(({ mode }) => ({
       exclude: ['src/**/*.test.{ts,tsx}', 'src/test-setup.ts', 'src/**/*.d.ts', 'src/**/__stubs__/**'],
       reporter: ['text', 'lcov'],
       // Frontend floor from the team's testing strategy: 70% of statements.
-      thresholds: { statements: 70 },
+      thresholds: { statements: 70,
+        'src/core/auth/session.ts': { statements: 85 },
+        'src/core/auth/authentication.ts': { statements: 85 },
+        'src/core/http/apiClient.ts': { statements: 85 },
+        'src/core/http/api.ts': { statements: 85 },
+      },
     },
     // Vite resolves every string-literal import() at transform time, even
     // one that is never called, so remote specifiers need a target here.
     alias: [
+      {
+        find: 'virtual:__federation__',
+        replacement: fileURLToPath(new URL('./src/remotes/__stubs__/federation.ts', import.meta.url)),
+      },
       {
         find: /^(authPortal|productsPortal|salesPortal)\/.*$/,
         replacement: fileURLToPath(new URL('./src/remotes/__stubs__/remote.tsx', import.meta.url)),
