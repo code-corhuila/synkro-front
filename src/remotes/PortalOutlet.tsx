@@ -6,7 +6,7 @@ import type { PortalEntry } from './registry';
 // fails to load only blanks its own area.
 export function PortalOutlet({ portal }: { portal: PortalEntry }) {
   return (
-    <RemoteBoundary load={portal.load} portalName={portal.name}>
+    <RemoteBoundary key={portal.name} load={portal.load} portalName={portal.name}>
       {(loaded) =>
         portal.kind === 'custom-element'
           ? createElement(loaded as string)
