@@ -2,7 +2,8 @@ name: ci
 
 on:
   push:
-    branches: [develop, qa, main, fix/root-composition-integration]
+    branches: [develop, qa, main, fix/root-composition-integration, feat/host-authentication-lifecycle]
+  workflow_dispatch:
   pull_request:
     branches: [develop, qa, main]
 

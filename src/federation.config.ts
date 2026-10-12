@@ -15,6 +15,7 @@ export const federationConfig = {
   exposes: {
     './apiClient': './src/shell/apiClient.ts',
     './session': './src/shell/session.ts',
+    './authentication': './src/shell/authentication.ts',
   },
   // Remote URLs are placeholders until the real portals exist.
   remotes: {

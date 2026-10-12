@@ -5,9 +5,11 @@ import './theme/fonts'
 import './index.css'
 import App from './app/App.tsx'
 import { restoreSession } from './core/auth/session'
+import { authentication } from './core/http/api'
 
 // Before the first render, so RequireAuth sees a session that survived a reload.
 restoreSession()
+void authentication.recover()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

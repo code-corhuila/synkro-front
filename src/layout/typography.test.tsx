@@ -30,11 +30,11 @@ describe('host headings carry the type scale through classes', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveClass('heading', 'heading--page');
   });
 
-  it('on the sign-in unavailable page', () => {
+  it('leaves login typography to the Auth remote', () => {
     vi.stubEnv('VITE_DEV_SIGN_IN', 'false');
     visit('/login');
 
-    expect(screen.getByRole('heading', { level: 1 })).toHaveClass('heading', 'heading--page');
+    expect(screen.getByRole('main')).toHaveClass('page');
   });
 
   describe('in the base stylesheet', () => {

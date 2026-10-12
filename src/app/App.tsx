@@ -4,7 +4,7 @@ import { RequireAuth } from '../core/auth/RequireAuth'
 import { RequireRole } from '../core/auth/RequireRole'
 import { getSession } from '../core/auth/session'
 import { copy } from '../layout/copy'
-import { LoginUnavailable } from '../layout/LoginUnavailable'
+import { AuthLogin } from '../remotes/AuthLogin'
 import { NotFound } from '../layout/NotFound'
 import { Shell } from '../layout/Shell'
 import { PortalOutlet } from '../remotes/PortalOutlet'
@@ -29,7 +29,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/login" element={devSignIn ? <DevSignIn /> : <LoginUnavailable />} />
+        <Route path="/login" element={devSignIn ? <DevSignIn /> : <AuthLogin />} />
         <Route
           element={
             <RequireAuth>

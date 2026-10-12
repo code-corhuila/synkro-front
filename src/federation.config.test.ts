@@ -12,10 +12,11 @@ describe('host federation config', () => {
     expect(federationConfig.filename).toBe('remoteEntry.js');
   });
 
-  it('exposes exactly ./apiClient and ./session', () => {
+  it('preserves apiClient/session and adds token-free authentication', () => {
     expect(federationConfig.exposes).toEqual({
       './apiClient': './src/shell/apiClient.ts',
       './session': './src/shell/session.ts',
+      './authentication': './src/shell/authentication.ts',
     });
   });
 
