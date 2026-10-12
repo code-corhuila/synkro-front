@@ -9,7 +9,13 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile
       args:
+        VITE_PRODUCTS_PORTAL_ENTRY: ${VITE_PRODUCTS_PORTAL_ENTRY:-http://localhost:5173/remotes/products/assets/remoteEntry.js}
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
         VITE_DEV_SIGN_IN: ${VITE_DEV_SIGN_IN:-false}
+    networks: [platform]
     ports:
       - "5173:80"
+
+networks:
+  platform:
+    external: true
