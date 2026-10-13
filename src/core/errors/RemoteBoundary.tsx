@@ -57,7 +57,7 @@ export class RemoteBoundary extends Component<Props, BoundaryState> {
 
   render() {
     if (this.state.hasError) {
-      return <p role="status" className="portal-notice">{copy.portal.unavailable}</p>;
+      return <div className="portal-notice"><p role="status">{copy.portal.unavailable}</p><button type="button" onClick={() => this.setState({ hasError: false })}>Reintentar módulo</button></div>;
     }
     return <PortalLoader load={this.props.load}>{this.props.children}</PortalLoader>;
   }
