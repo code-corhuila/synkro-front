@@ -13,4 +13,12 @@ describe('CLI-UI-16 same-origin Customers delivery',()=>{
     expect(nginx).toContain('set $customers_portal http://synkro-customers-portal:80;');
     expect(nginx).toContain('rewrite ^/remotes/customers/(.*)$ /$1 break;');
   });
+  it('bounds Customers warm-cache failures while preserving the incorporated Sales policy',()=>{
+    const nginx=read('deploy/nginx.conf');
+    for(const portal of ['customers','sales']) {
+      const location=nginx.split(`location /remotes/${portal}/ {`)[1].split('}')[0];
+      expect(location).toContain('resolver_timeout 2s;'); expect(location).toContain('proxy_connect_timeout 2s;');
+      expect(location).toContain(`error_page 504 =502 @${portal}_unavailable;`);
+    }
+  });
 });

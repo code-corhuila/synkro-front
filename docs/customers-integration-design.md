@@ -8,6 +8,13 @@ pre-implementation review. Starting Host develop is
 `a1fecc671ada1384dcaeeec5f59dff3c13a35e26`; remote correction
 `24d5368` on codex/sales-upstream-timeout remains a separate unmerged change.
 
+Update after user coordination: origin/develop
+`0e4b8ac7768a1416bdf9513f78a21054e4c22e69` (PR #12) was incorporated through
+normal merge `a56e5ba9e849238c29e6a7e625fac029069d6163`. No conflicts; preserve
+the Sales location's 2s resolver/connect limits and 504-to-502/no-store response.
+Customers receives equivalent bounded unavailable delivery in its own location;
+successful asset cache headers still come from the owning portal.
+
 The exact v1 type is mirrored in src/shell/shell-contract.ts. customersContract
 adapts the existing protected client; no authentication/session lifecycle change.
 React ref injects shellContract as a property after the loader's whenDefined wait.
