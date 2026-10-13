@@ -5,8 +5,8 @@ Design sources: synkro-docs `61056c93e6e0783a9199bf56778e9494739bc458`, ADR-011,
 frontend stack, Customers OpenAPI/shared schemas, navigation/wireframes/tokens,
 testing, DoR/DoD and Git conventions. Portal docs/design.md records the detailed
 pre-implementation review. Starting Host develop is
-`a1fecc671ada1384dcaeeec5f59dff3c13a35e26`; remote correction
-`24d5368` on codex/sales-upstream-timeout remains a separate unmerged change.
+`a1fecc671ada1384dcaeeec5f59dff3c13a35e26`; at the initial inspection correction
+`24d5368` was unmerged. Its subsequent incorporation is recorded below.
 
 Update after user coordination: origin/develop
 `0e4b8ac7768a1416bdf9513f78a21054e4c22e69` (PR #12) was incorporated through
