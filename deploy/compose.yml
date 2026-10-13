@@ -13,6 +13,7 @@ services:
         VITE_SALES_PORTAL_ENTRY: ${VITE_SALES_PORTAL_ENTRY:-http://localhost:5173/remotes/sales/assets/remoteEntry.js}
         VITE_PRODUCTS_PORTAL_ENTRY: ${VITE_PRODUCTS_PORTAL_ENTRY:-http://localhost:5173/remotes/products/assets/remoteEntry.js}
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+        VITE_CUSTOMERS_PORTAL_ENTRY: ${VITE_CUSTOMERS_PORTAL_ENTRY:-/remotes/customers/remoteEntry.js}
         VITE_DEV_SIGN_IN: ${VITE_DEV_SIGN_IN:-false}
     networks: [platform]
     ports:
