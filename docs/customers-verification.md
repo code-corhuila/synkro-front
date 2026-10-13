@@ -3,7 +3,7 @@
 Responsable Jordan Ramirez Gallego (`JordanRG420`), synkro-docs#249.
 Rama `feat/customers-portal-integration`, destino propuesto `develop`.
 
-Código ejecutado e imagen: `80211842ad444c7cc0100503506ab8f835ec0d7b`.
+Snapshot ejecutado e imagen: `2174bdae341aa8f7ccb493bbe76850fb939849fb` (código runtime idéntico a `80211842ad444c7cc0100503506ab8f835ec0d7b`).
 Develop incorporado: `0e4b8ac7768a1416bdf9513f78a21054e4c22e69`; merge normal
 `a56e5ba9e849238c29e6a7e625fac029069d6163`, sin conflictos, rebase ni force-push.
 La configuración Sales conserva resolución/conexión 2s y 504→502/no-store.
@@ -15,12 +15,12 @@ los umbrales existentes y los controles Auth/Products/Sales. Root deploy: 2 PASS
 [CI del SHA de código: success](https://github.com/code-corhuila/synkro-front/actions/runs/38339772767).
 
 Docker real construido y servido en aceptación de navegador; ID de imagen
-`sha256:f335d86c4bf69091971d9e216a6338fded51c079e3c3546115a17d9ad256ed1f`.
-Portal probado: `216e3793296e6315b5abb45cb402621ba1498563`.
+`sha256:bf88bba6156858c51b0081ab7ac76b4539080b49bc1d36b3844b03d493cc98fc`.
+Portal probado: `7e354935598c8151d644f9e2e72b35acf2280ca2`.
 Auth, Gateway y Customers API reales, PostgreSQL tmpfs propio, credenciales
 efímeras, Chrome 154.0.8037.98. CRUD lógico, registro idempotente después de
 respuesta perdida, permisos, deep links, refresh y Back/forward PASS.
-Sales ausente con DNS caliente: 502 sin cache en 2,009s; Customers: 2,003s.
+Sales ausente con DNS caliente: 502 sin cache en 2,010s; Customers: 2,008s.
 Host y assets Products permanecen disponibles; ambos recuperan assets.
 Customers muestra aviso localizado y recupera con retry sin recargar el Host.
 No se certifican las APIs ni el negocio Sales/Products. Recursos propios limpiados;
