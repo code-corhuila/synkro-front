@@ -18,7 +18,7 @@ describe('CLI-UI-16 same-origin Customers delivery',()=>{
     for(const portal of ['customers','sales']) {
       const location=nginx.split(`location /remotes/${portal}/ {`)[1].split('}')[0];
       expect(location).toContain('resolver_timeout 2s;'); expect(location).toContain('proxy_connect_timeout 2s;');
-      expect(location).toContain(`error_page 504 =502 @${portal}_unavailable;`);
+      expect(location).toContain(`error_page ${portal === 'customers' ? '502 504' : '504'} =502 @${portal}_unavailable;`);
     }
   });
 });
