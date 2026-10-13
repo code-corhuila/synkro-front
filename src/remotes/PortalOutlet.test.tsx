@@ -1,13 +1,28 @@
 import { useState } from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render as renderUI, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PortalOutlet } from './PortalOutlet';
 import type { PortalEntry } from './registry';
+import { MemoryRouter } from 'react-router-dom';
 
 const UNAVAILABLE = 'Este módulo no está disponible en este momento.';
+const render = (ui: React.ReactNode) => renderUI(ui, {wrapper: MemoryRouter});
 
 describe('PortalOutlet', () => {
+  it('CLI-UI-01 delivers v1 as a property with identity, basePath and navigation', async () => {
+    const tag = 'synkro-contract-test';
+    if (!customElements.get(tag)) customElements.define(tag, class extends HTMLElement {});
+    const portal: PortalEntry = {name:'customers',kind:'custom-element',routePrefixes:['/customers'],load:async()=>tag};
+    const {container} = render(<PortalOutlet portal={portal}/>);
+    await waitFor(()=>expect(container.querySelector(tag)).not.toBeNull());
+    const element = container.querySelector(tag) as HTMLElement & {shellContract?: {contractVersion:number;basePath:string;session:{user:()=>unknown};navigate:unknown}};
+    expect(element.shellContract?.contractVersion).toBe(1);
+    expect(element.shellContract?.basePath).toBe('/customers');
+    expect(element.hasAttribute('shellContract')).toBe(false);
+    expect(element.shellContract?.session.user()).toBeNull();
+    expect(element.shellContract?.navigate).toBeTypeOf('function');
+  });
   it('renders a module-federation portal through its default export', async () => {
     const portal: PortalEntry = {
       name: 'products',
@@ -41,6 +56,12 @@ describe('PortalOutlet', () => {
     };
     render(<PortalOutlet portal={portal} />);
     expect(await screen.findByText(UNAVAILABLE)).toBeInTheDocument();
+  });
+  it('CLI-UI-14 recovers by explicit retry without reloading the Host',async()=>{
+    const load=vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue({default:()=> <p>recuperado</p>});
+    render(<PortalOutlet portal={{name:'customers',kind:'module-federation',routePrefixes:['/customers'],load}}/>);
+    await screen.findByText(UNAVAILABLE); await userEvent.click(screen.getByRole('button',{name:'Reintentar módulo'}));
+    expect(await screen.findByText('recuperado')).toBeInTheDocument(); expect(load).toHaveBeenCalledTimes(2);
   });
 
   describe('switching portals', () => {
