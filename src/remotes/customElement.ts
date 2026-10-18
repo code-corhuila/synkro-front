@@ -17,18 +17,26 @@ export function loadCustomElement({
   timeoutMs = 5000,
   importEntry = (url) => import(/* @vite-ignore */ url),
 }: CustomElementPortal): () => Promise<string> {
+  let failures = 0;
   return async () => {
-    await importEntry(entryUrl());
-
+    const url = entryUrl();
+    const attemptUrl = failures ? `${url}${url.includes('?') ? '&' : '?'}synkroRetry=${failures}` : url;
+    let phase = 'entry import';
     let timer: ReturnType<typeof setTimeout> | undefined;
     const timeout = new Promise<never>((_, reject) => {
       timer = setTimeout(
-        () => reject(new Error(`<${tagName}> was never defined after ${timeoutMs}ms`)),
+        () => reject(new Error(phase === 'entry import' ? `<${tagName}> entry import timed out after ${timeoutMs}ms` : `<${tagName}> was never defined after ${timeoutMs}ms`)),
         timeoutMs
       );
     });
     try {
-      await Promise.race([customElements.whenDefined(tagName), timeout]);
+      await Promise.race([
+        importEntry(attemptUrl).then(async () => {phase = 'registration'; await customElements.whenDefined(tagName);}),
+        timeout,
+      ]);
+    } catch (error) {
+      failures++;
+      throw error;
     } finally {
       clearTimeout(timer);
     }
@@ -37,7 +45,7 @@ export function loadCustomElement({
 }
 
 // Stable (unhashed) entry filename, served uncached by the portal (ADR-011).
-// The default is a local placeholder until the real portal exists.
+// Coordinated same-origin delivery, including local Compose.
 export function customersPortalEntryUrl(): string {
-  return import.meta.env.VITE_CUSTOMERS_PORTAL_ENTRY || 'http://localhost:5177/remoteEntry.js';
+  return import.meta.env.VITE_CUSTOMERS_PORTAL_ENTRY || '/remotes/customers/remoteEntry.js';
 }
