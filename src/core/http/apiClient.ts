@@ -21,10 +21,56 @@ export class ApiClientError extends Error {
 
 const TIMEOUT_MS = 10_000;
 
+function cancelledError(traceId: string) {
+  return new ApiClientError(0, { error: 'CANCELLED', message: 'Request cancelled', traceId });
+}
+
+// `undefined` and `null` mean "no value": the parameter is left out.
+function buildPath(path: string, query: RequestOptions['query'] = {}): string {
+  const pairs = Object.entries(query)
+    .filter(([, value]) => value !== undefined && value !== null)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+  if (pairs.length === 0) return path;
+  return `${path}${path.includes('?') ? '&' : '?'}${pairs.join('&')}`;
+}
+
+// The client owns these two: a caller can neither replace nor add them.
+const PROTECTED_HEADERS = new Set(['authorization', 'x-correlation-id']);
+
+// A caller header replaces a default with the same name, whatever its case:
+// `content-type` replaces `Content-Type` rather than being sent beside it.
+function mergeHeaders(defaults: Record<string, string>, extra: Record<string, string> = {}) {
+  const merged = { ...defaults };
+  for (const [name, value] of Object.entries(extra)) {
+    if (PROTECTED_HEADERS.has(name.toLowerCase())) continue;
+    for (const existing of Object.keys(merged)) {
+      if (existing.toLowerCase() === name.toLowerCase()) delete merged[existing];
+    }
+    merged[name] = value;
+  }
+  return merged;
+}
+
+// The idempotency key is the caller's explicit option, so it wins over a
+// header of the same name passed in `headers`.
+function buildHeaders(options: RequestOptions, correlationId: string, token: string | null) {
+  const defaults = {
+    'Content-Type': 'application/json',
+    'X-Correlation-Id': correlationId,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+  const withCaller = mergeHeaders(defaults, options.headers);
+  if (options.idempotencyKey === undefined) return withCaller;
+  return mergeHeaders(withCaller, { 'Idempotency-Key': options.idempotencyKey });
+}
+
 export interface RequestOptions {
   method?: string;
   body?: unknown;
   headers?: Record<string, string>;
+  query?: Record<string, string | number | boolean | null | undefined>;
+  idempotencyKey?: string;
+  signal?: AbortSignal;
 }
 
 export function createApiClient(
@@ -33,21 +79,27 @@ export function createApiClient(
   onUnauthorized: () => void
 ) {
   async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     const correlationId = crypto.randomUUID();
+    if (options.signal?.aborted) throw cancelledError(correlationId);
+
+    // One controller carries both the timeout and the caller's cancellation,
+    // so fetch sees a single signal. The timer sets `timedOut` before it
+    // aborts; the caller's abort does not, which is how the two are told apart.
+    const controller = new AbortController();
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, TIMEOUT_MS);
+    const forwardCancel = () => controller.abort();
+    options.signal?.addEventListener('abort', forwardCancel);
     const token = getToken();
 
     try {
-      const res = await fetch(`${baseUrl}${path}`, {
+      const res = await fetch(`${baseUrl}${buildPath(path, options.query)}`, {
         method: options.method ?? 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Correlation-Id': correlationId,
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          ...options.headers,
-        },
-        body: options.body ? JSON.stringify(options.body) : undefined,
+        headers: buildHeaders(options, correlationId, token),
+        body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
         signal: controller.signal,
       });
 
@@ -66,12 +118,14 @@ export function createApiClient(
       return (await res.json()) as T;
     } catch (err) {
       if (err instanceof ApiClientError) throw err;
-      if ((err as Error).name === 'AbortError') {
+      if (timedOut) {
         throw new ApiClientError(0, { error: 'TIMEOUT', message: 'Request timed out', traceId: correlationId });
       }
+      if (options.signal?.aborted) throw cancelledError(correlationId);
       throw new ApiClientError(0, { error: 'NETWORK_ERROR', message: 'Network error', traceId: correlationId });
     } finally {
       clearTimeout(timer);
+      options.signal?.removeEventListener('abort', forwardCancel);
     }
   }
 
