@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getSession, setSession, signInWithDevToken } from './session';
 
 function fakeJwt(payload: Record<string, unknown>) {
@@ -9,9 +9,12 @@ function fakeJwt(payload: Record<string, unknown>) {
 
 describe('session', () => {
   beforeEach(() => {
+    vi.stubEnv('VITE_DEV_SIGN_IN', 'true');
     sessionStorage.clear();
     setSession(null);
   });
+
+  afterEach(() => vi.unstubAllEnvs());
 
   it('starts with no session', () => {
     expect(getSession()).toBeNull();

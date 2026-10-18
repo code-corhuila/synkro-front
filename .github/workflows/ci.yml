@@ -20,3 +20,41 @@ jobs:
           test -f .github/pull_request_template.md
           test -f .env.example
           echo "Common files present."
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # A portal that does not build is a broken portal. VITE_DEV_SIGN_IN is not
+      # set, as for a build that reaches main.
+      - run: npm run build
+      # The development sign-in must never reach main: fail if the build holds it.
+      - run: npm run check:production-build
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Coverage, not just the tests: vitest enforces the 70% statements floor.
+      - run: npm run coverage

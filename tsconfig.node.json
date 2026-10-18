@@ -5,6 +5,7 @@
     "lib": ["ES2023"],
     "types": ["node"],
     "skipLibCheck": true,
+    "resolveJsonModule": true,
 
     /* Bundler mode: Vite bundles this config itself, so resolve like a bundler
        (nodenext reads CJS-typed plugins such as vite-plugin-federation as
