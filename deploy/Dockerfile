@@ -7,6 +7,10 @@ WORKDIR /app
 # The gateway address and the development sign-in are fixed at build time: Vite
 # bakes them into the bundle. The sign-in is off unless a build argument turns it
 # on, so an image built for qa or main never contains it.
+ARG VITE_SALES_PORTAL_ENTRY=http://localhost:5173/remotes/sales/assets/remoteEntry.js
+ENV VITE_SALES_PORTAL_ENTRY=$VITE_SALES_PORTAL_ENTRY
+ARG VITE_PRODUCTS_PORTAL_ENTRY=http://localhost:5173/remotes/products/assets/remoteEntry.js
+ENV VITE_PRODUCTS_PORTAL_ENTRY=$VITE_PRODUCTS_PORTAL_ENTRY
 ARG VITE_API_BASE_URL
 ARG VITE_DEV_SIGN_IN=false
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL \
