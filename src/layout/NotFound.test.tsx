@@ -68,12 +68,12 @@ describe('route that does not exist', () => {
       expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
     });
 
-    it('stops at /login, without redirecting again, when no sign-in is available', () => {
+    it('stops at public /login while the remote loads', () => {
       vi.stubEnv('VITE_DEV_SIGN_IN', 'false');
       visit('/definitely-not-a-route');
 
       expect(window.location.pathname).toBe('/login');
-      expect(screen.getByText(/el inicio de sesión no está disponible/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', {name:'Volver a cargar el acceso'})).toBeInTheDocument();
     });
   });
 

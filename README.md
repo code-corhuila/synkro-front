@@ -47,7 +47,7 @@ npm run lint
 ## Modules exposed to remotes
 
 The host's federation entry is `http://localhost:5173/assets/remoteEntry.js` (`vite preview`
-pins port 5173). It exposes exactly two modules, which remotes import as `shell/apiClient` and
+pins port 5173). It preserves two existing modules, which remotes import as `shell/apiClient` and
 `shell/session`:
 
 | Module | Source | Contract |
@@ -199,7 +199,7 @@ A pasted token becomes a session. It exists only for Local/Development: it is re
 have it off.**
 
 With it off, the sign-in code, its strings and the `synkro_dev_token` key (under which a session
-survives a reload) are not in the bundle, and the session lives in memory.
+survives a reload) are not in the bundle, access lives in memory, and the Host alone stores the rotating refresh in sessionStorage.
 `npm run check:production-build` fails if any of them is: run it after `npm run build`. CI runs it on
 the build job, and the Dockerfile on the image build. The sign-in's CSS stays in the style bundle.
 
@@ -243,3 +243,29 @@ Run `python3 tests/test_root_deploy.py` for deployment configuration checks.
 Compose builds the Sales entry from `VITE_SALES_PORTAL_ENTRY`, defaulting to `http://localhost:5173/remotes/sales/assets/remoteEntry.js`; Products retains its own entry. Both inputs reach Vite at build time. Nginx resolves the internal `synkro-sales-portal:80` on platform and proxies the complete `/remotes/sales/` subtree, removing only that prefix. Configure the Sales owning build with this same base. Keep `VITE_DEV_SIGN_IN=false` for deployed images.
 
 The remote boundary remounts when portal identity changes. An unavailable Sales download leaves shell/navigation usable; navigating to Products loads it without reloading, and returning to Sales attempts a fresh load. This does not add automatic retry while staying on the failed route. The real navigation regression preserves the same shell element through failure, Products navigation and successful Sales return.
+
+## Production authentication (HU-FE-08)
+
+The public `/login` route mounts the real Auth remote when development sign-in
+is disabled. The additive `shell/authentication` export provides token-free
+login outcomes, logout and observable state. Portals keep using the existing
+`apiClient` and `session` signatures. Protected requests pass the session gate;
+a protected 401 ends the session without refresh/replay, while 403 keeps it.
+
+The Host owns access in memory, refresh in sessionStorage, validation, one
+shared renewal and generation invalidation. It checks at <=60 seconds before
+expiration, request, focus and visibility boundaries and restores by refresh
+after reload. A lost rotating response requires new login without resubmission.
+The browser decode only schedules checks; backend validation remains authority.
+
+Production delivery uses `/remotes/auth/` through the Host and internal
+`synkro-auth-portal:80`, with no portal port or backend credentials. Empty
+`VITE_API_BASE_URL` uses the Host `/api/` Gateway proxy so Retry-After is visible.
+The development walkthrough above is optional local verification only.
+
+See [design and human approval](docs/authentication-design.md),
+[operational configuration and prepared PRs](docs/authentication-operations.md)
+and [verification matrix and TDD limits](docs/authentication-verification.md).
+CI also runs on the authorized feature branch and manual dispatch, with existing
+read-only permissions and bounded jobs. No PR or permanent-branch promotion
+is performed by this delivery.
