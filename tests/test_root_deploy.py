@@ -11,6 +11,19 @@ class RootDeployTest(unittest.TestCase):
         self.assertIn('error_page 504 =502 @sales_unavailable;', sales)
         self.assertIn('location @sales_unavailable', config)
 
+    def test_auth_and_products_outage_preserve_client_budget_and_controlled_status(self):
+        config = (ROOT / 'deploy/nginx.conf').read_text()
+        for portal in ('auth', 'products'):
+            block = config.split('location /remotes/%s/ {' % portal, 1)[1].split('}', 1)[0]
+            self.assertIn('proxy_connect_timeout 2s;', block)
+            self.assertIn('resolver_timeout 2s;', block)
+            self.assertIn('proxy_intercept_errors on;', block)
+            self.assertIn('error_page 504 =502 @%s_unavailable;' % portal, block)
+            self.assertIn('Cache-Control "no-store"', block)
+            unavailable = config.split('location @%s_unavailable {' % portal, 1)[1].split('}', 1)[0]
+            self.assertIn('add_header Cache-Control "no-store" always;', unavailable)
+            self.assertIn('return 502;', unavailable)
+
     def test_internal_delivery(self):
         compose = (ROOT / 'deploy/compose.yml').read_text()
         self.assertIn('networks: [platform]', compose)
