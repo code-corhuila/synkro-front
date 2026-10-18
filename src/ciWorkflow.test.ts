@@ -30,8 +30,8 @@ describe('CI workflow', () => {
     expect(Object.keys(jobs()).sort()).toEqual(['build', 'check-common-files', 'lint', 'test']);
   });
 
-  it('runs on the same pushes and pull requests as before', () => {
-    expect(workflow).toMatch(/push:\n\s+branches: \[develop, qa, main\]/);
+  it('preserves permanent triggers and validates the root integration candidate', () => {
+    expect(workflow).toMatch(/push:\n\s+branches: \[develop, qa, main, fix\/root-composition-integration\]/);
     expect(workflow).toMatch(/pull_request:\n\s+branches: \[develop, qa, main\]/);
   });
 
