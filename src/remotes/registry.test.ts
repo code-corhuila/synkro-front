@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { portals } from './registry';
 import { customersPortalEntryUrl, loadCustomElement } from './customElement';
+import { navItems } from '../layout/navigation';
 
 vi.mock('./customElement', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./customElement')>();
@@ -50,5 +51,38 @@ describe('customers portal entry', () => {
     });
     const customers = portals.find((p) => p.name === 'customers');
     expect(vi.mocked(loadCustomElement).mock.results[0].value).toBe(customers?.load);
+  });
+});
+
+describe('module-federation entries', () => {
+  const federated = portals.filter((p) => p.kind === 'module-federation');
+
+  it('are the auth, products and sales portals', () => {
+    expect(federated.map((p) => p.name).sort()).toEqual(['auth', 'products', 'sales']);
+  });
+
+  // The specifiers only resolve through the federation plugin in a build; under
+  // Vitest they resolve to a stub through the alias in vite.config.ts, so no
+  // network is involved.
+  it.each(['auth', 'products', 'sales'])('loads the %s portal as a module with a React component', async (name) => {
+    const portal = portals.find((p) => p.name === name);
+
+    const loaded = (await portal?.load()) as { default: unknown };
+
+    expect(typeof loaded.default).toBe('function');
+  });
+});
+
+describe('portal registry and the access matrix', () => {
+  const owned = portals.flatMap((p) => p.routePrefixes);
+  const matrixPaths = navItems.map((item) => item.path).filter((path) => path !== '/dashboard');
+
+  // RequireRole fails closed: a prefix with no matrix entry would be denied to everyone.
+  it('has a matrix entry for every route prefix a portal owns', () => {
+    expect(owned.filter((prefix) => !matrixPaths.includes(prefix))).toEqual([]);
+  });
+
+  it('has exactly one portal for every screen the matrix lists apart from /dashboard', () => {
+    expect([...owned].sort()).toEqual([...matrixPaths].sort());
   });
 });

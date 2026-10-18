@@ -6,6 +6,9 @@
 // Module Federation 2.0's runtime). It needs none here: each remote's
 // remoteEntry.js is fetched only when its import() runs — on entering the
 // portal's route — so a downed remote never blocks the host's startup.
+import reactDomPackage from 'react-dom/package.json' with { type: 'json' };
+import reactPackage from 'react/package.json' with { type: 'json' };
+
 export const federationConfig = {
   name: 'host',
   filename: 'remoteEntry.js',
@@ -19,5 +22,13 @@ export const federationConfig = {
     productsPortal: 'http://localhost:5175/assets/remoteEntry.js',
     salesPortal: 'http://localhost:5176/assets/remoteEntry.js',
   },
-  shared: ['react', 'react-dom'],
+  // For this host the plugin leaves a shared module's version undefined and
+  // registers it under the key "undefined". A portal asking for ^19.2.x then
+  // finds no match, loads its own bundled React, and its hooks fail inside the
+  // host's React DOM ("reading 'useState'"). The version is read from the
+  // installed packages, so it follows package-lock.json and cannot drift.
+  shared: {
+    react: { version: reactPackage.version },
+    'react-dom': { version: reactDomPackage.version },
+  },
 };

@@ -69,7 +69,7 @@ describe('loadCustomElement', () => {
         }}
       />
     );
-    expect(await screen.findByText(/customers.*not available/i)).toBeInTheDocument();
+    expect(await screen.findByText('Este módulo no está disponible en este momento.')).toBeInTheDocument();
   });
 });
 

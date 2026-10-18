@@ -44,35 +44,35 @@ describe('host shell, assembled', () => {
     expect(window.location.pathname).toBe('/login');
 
     await userEvent.type(
-      screen.getByLabelText(/development token/i),
+      screen.getByLabelText(/token de desarrollo/i),
       fakeJwt({ sub: 'alice', roles: ['ADMIN'] })
     );
-    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    await userEvent.click(screen.getByRole('button', { name: /ingresar/i }));
 
     expect(window.location.pathname).toBe('/dashboard');
-    expect(await screen.findByRole('heading', { name: /dashboard/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /panel/i })).toBeInTheDocument();
   });
 
   it('keeps the session across a reload', async () => {
     await boot('/login');
     await userEvent.type(
-      screen.getByLabelText(/development token/i),
+      screen.getByLabelText(/token de desarrollo/i),
       fakeJwt({ sub: 'bob', roles: ['SALESPERSON'] })
     );
-    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    await userEvent.click(screen.getByRole('button', { name: /ingresar/i }));
 
     await boot('/dashboard');
 
     expect(window.location.pathname).toBe('/dashboard');
-    expect(screen.getByRole('heading', { name: /dashboard/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /panel/i })).toBeInTheDocument();
   });
 
   it('sends the signed-in token through the api client, and a 401 kicks a mounted page back to /login', async () => {
     const token = fakeJwt({ sub: 'alice', roles: ['ADMIN'] });
     const { api, session } = await boot('/login');
-    await userEvent.type(screen.getByLabelText(/development token/i), token);
-    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
-    expect(screen.getByRole('heading', { name: /dashboard/i })).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText(/token de desarrollo/i), token);
+    await userEvent.click(screen.getByRole('button', { name: /ingresar/i }));
+    expect(screen.getByRole('heading', { name: /panel/i })).toBeInTheDocument();
 
     fetchMock.mockResolvedValue(
       new Response(JSON.stringify({ error: 'UNAUTHORIZED', message: 'expired', traceId: 't' }), { status: 401 })
@@ -84,12 +84,12 @@ describe('host shell, assembled', () => {
 
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe('http://gateway/api/v1/products');
-    expect((init?.headers as Record<string, string>)['Authorization']).toBe(`Bearer ${token}`);
+    expect(init?.headers).toMatchObject({ Authorization: `Bearer ${token}` });
 
     expect(session.getSession()).toBeNull();
     expect(sessionStorage.getItem('synkro_dev_token')).toBeNull();
     expect(window.location.pathname).toBe('/login');
-    expect(screen.getByLabelText(/development token/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/token de desarrollo/i)).toBeInTheDocument();
   });
 
   it('does not offer development sign-in when VITE_DEV_SIGN_IN is not "true"', async () => {
@@ -97,7 +97,7 @@ describe('host shell, assembled', () => {
     await boot('/dashboard');
 
     expect(window.location.pathname).toBe('/login');
-    expect(screen.queryByLabelText(/development token/i)).not.toBeInTheDocument();
-    expect(within(document.body).queryByRole('heading', { name: /dashboard/i })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/token de desarrollo/i)).not.toBeInTheDocument();
+    expect(within(document.body).queryByRole('heading', { name: /panel/i })).not.toBeInTheDocument();
   });
 });
