@@ -31,7 +31,7 @@ describe('CI workflow', () => {
   });
 
   it('preserves permanent triggers and validates the root integration candidate', () => {
-    expect(workflow).toMatch(/push:\n\s+branches: \[develop, qa, main, fix\/root-composition-integration\]/);
+    expect(workflow).toMatch(/push:\n\s+branches: \[develop, qa, main, fix\/root-composition-integration, feat\/host-authentication-lifecycle\]/);
     expect(workflow).toMatch(/pull_request:\n\s+branches: \[develop, qa, main\]/);
   });
 

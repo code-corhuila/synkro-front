@@ -4,6 +4,7 @@ import { getSession, subscribeSession } from '../core/auth/session';
 import { copy } from './copy';
 import { navItemsFor } from './navigation';
 import './Shell.css';
+import { authentication } from '../core/http/api';
 
 export function Shell() {
   // Subscribed for the same reason as RequireAuth: a session change while
@@ -15,6 +16,7 @@ export function Shell() {
       <header className="shell-header">
         <strong>Synkro</strong>
         {session && <span> {session.sub} ({copy.roles[session.role] ?? session.role})</span>}
+        <button type="button" onClick={() => void authentication.logout()}>Cerrar sesión</button>
         <nav aria-label={copy.navigation.label} className="shell-nav">
           <ul>
             {navItemsFor(session?.role).map((item) => (

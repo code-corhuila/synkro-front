@@ -8,6 +8,8 @@ WORKDIR /app
 # bakes them into the bundle. The sign-in is off unless a build argument turns it
 # on, so an image built for qa or main never contains it.
 ARG VITE_SALES_PORTAL_ENTRY=http://localhost:5173/remotes/sales/assets/remoteEntry.js
+ARG VITE_AUTH_PORTAL_ENTRY=http://localhost:5173/remotes/auth/assets/remoteEntry.js
+ENV VITE_AUTH_PORTAL_ENTRY=$VITE_AUTH_PORTAL_ENTRY
 ENV VITE_SALES_PORTAL_ENTRY=$VITE_SALES_PORTAL_ENTRY
 ARG VITE_PRODUCTS_PORTAL_ENTRY=http://localhost:5173/remotes/products/assets/remoteEntry.js
 ENV VITE_PRODUCTS_PORTAL_ENTRY=$VITE_PRODUCTS_PORTAL_ENTRY
