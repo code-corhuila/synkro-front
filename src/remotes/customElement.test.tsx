@@ -34,6 +34,15 @@ describe('loadCustomElement', () => {
     });
     await expect(load()).rejects.toThrow(/failed to fetch/i);
   });
+  it('bounds a hung import and retries a failed entry with a fresh module URL', async () => {
+    vi.useFakeTimers();
+    const tag=uniqueTag(); const importEntry=vi.fn().mockImplementationOnce(()=>new Promise(()=>{})).mockImplementation(async()=>defineTag(tag));
+    const load=loadCustomElement({tagName:tag,entryUrl:()=>'/remotes/customers/remoteEntry.js',timeoutMs:50,importEntry});
+    const first=load().catch(e=>e); await vi.advanceTimersByTimeAsync(50);
+    expect(await first).toBeInstanceOf(Error);
+    await expect(load()).resolves.toBe(tag);
+    expect(importEntry.mock.calls[1][0]).toContain('synkroRetry=1');
+  });
 
   it('rejects after 5 seconds by default when the element is never defined', async () => {
     vi.useFakeTimers();
@@ -83,6 +92,6 @@ describe('customersPortalEntryUrl', () => {
 
   it('falls back to a stable, unhashed local entry file', () => {
     vi.stubEnv('VITE_CUSTOMERS_PORTAL_ENTRY', '');
-    expect(customersPortalEntryUrl()).toBe('http://localhost:5177/remoteEntry.js');
+    expect(customersPortalEntryUrl()).toBe('/remotes/customers/remoteEntry.js');
   });
 });
