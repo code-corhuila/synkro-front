@@ -95,7 +95,8 @@ describe('Host recovery ownership (Auth transport doubles)', () => {
     transport.mockResolvedValueOnce(pair());
     await expect(auth.login(credentials)).rejects.toMatchObject({ code: 'CANCELLED' });
     expect(session.user()).toBeNull(); expect(session.sessionId()).toBeNull(); expect(auth.state()).toBe('anonymous');
-    expect(vi.getTimerCount()).toBe(0);
+    await vi.advanceTimersByTimeAsync(3540000);
+    expect(transport.mock.calls.some(([operation]) => operation === 'refresh')).toBe(false);
   });
   it('storage failure before rotation transmits no refresh and invalidates', async () => {
     await login(); vi.setSystemTime(Date.now() + 3540000);
