@@ -1,4 +1,4 @@
-import { getSession } from '../core/auth/session';
+import { getSession, subscribeSession } from '../core/auth/session';
 
 export interface ShellUser {
   sub: string;
@@ -13,4 +13,8 @@ export const session = {
     const current = getSession();
     return current ? { sub: current.sub, role: current.role } : null;
   },
+  sessionId(): string | null {
+    return getSession()?.sessionId ?? null;
+  },
+  subscribe: subscribeSession,
 };

@@ -1,16 +1,21 @@
 import {beforeEach,afterEach,it,expect,vi} from 'vitest';
 import {api,authentication} from './api';
 import {getSession,setSession} from '../auth/session';
+import {session} from '../../shell/session';
 const response=(status=200)=>new Response(JSON.stringify({error:status===403?'FORBIDDEN':'UNAUTHORIZED',message:'denied',traceId:'id'}),{status});
 beforeEach(()=>{setSession({token:'test',sub:'alice',role:'ADMIN'});});
 afterEach(()=>{setSession(null);vi.unstubAllGlobals();});
 it('protected 401 clears session without refresh or replay',async()=>{
+ const snapshots:unknown[]=[];const off=session.subscribe(()=>snapshots.push([session.user(),session.sessionId()]));
  const fetcher=vi.fn().mockResolvedValue(response(401));vi.stubGlobal('fetch',fetcher);
  await expect(api.request('/api/v1/products')).rejects.toMatchObject({status:401});expect(getSession()).toBeNull();expect(fetcher).toHaveBeenCalledTimes(1);
+ off();expect(snapshots).toEqual([[null,null]]);
 });
 it('protected 403 retains session and normalized access error',async()=>{
+ const id=session.sessionId();
  vi.stubGlobal('fetch',vi.fn().mockResolvedValue(response(403)));
  await expect(api.request('/api/v1/products')).rejects.toMatchObject({status:403});expect(getSession()?.sub).toBe('alice');
+ expect(session.sessionId()).toBe(id);
 });
 it.each([200,401])('late protected %s cannot affect a replacement session',async status=>{
  let resolve!:(r:Response)=>void;vi.stubGlobal('fetch',vi.fn().mockReturnValue(new Promise<Response>(yes=>resolve=yes)));

@@ -29,6 +29,18 @@ export type AuthOperation = 'login' | 'refresh' | 'logout';
 export type AuthTransport = (operation: AuthOperation, body: unknown, signal?: AbortSignal, token?: string) => Promise<unknown>;
 type State = 'anonymous' | 'authenticating' | 'recovering' | 'authenticated' | 'renewing' | 'indeterminate';
 const REFRESH_KEY = 'synkro_refresh';
+const SESSION_KEY = 'synkro_session';
+function restoredDescriptor() {
+    try {
+        const value = JSON.parse(sessionStorage.getItem(SESSION_KEY) ?? 'null');
+        return value && typeof value.sub === 'string' && typeof value.id === 'string' &&
+            /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(value.id)
+            ? { sub: value.sub as string, id: value.id as string } : null;
+    } catch { return null; }
+}
+function removeStored(key: string) {
+    try { sessionStorage.removeItem(key); } catch { /* Storage cannot prevent local invalidation. */ }
+}
 // Structural checks support scheduling/presentation only. Services verify JWTs.
 function validatePair(value: unknown) {
     const pair = value as {
@@ -90,10 +102,13 @@ export function createAuthentication(transport: AuthTransport) {
     let committing = false;
     let retryAt = 0;
     let termination: AuthCode = 'CANCELLED';
+    let descriptor: ReturnType<typeof restoredDescriptor> = null;
     const listeners = new Set<() => void>();
     const outcomes = new WeakMap<LoginOutcome, number>();
-    const update = (next: State) => { status = next; listeners.forEach(fn => fn()); };
-    const removeRefresh = () => { refresh = null; sessionStorage.removeItem(REFRESH_KEY); };
+    const update = (next: State) => { status = next; for (const fn of [...listeners]) {
+        if (listeners.has(fn)) { try { fn(); } catch { /* Isolate consumers. */ } }
+    } };
+    const removeRefresh = () => { refresh = null; descriptor = null; removeStored(REFRESH_KEY); removeStored(SESSION_KEY); };
     const clear = (reason: AuthCode = 'CANCELLED') => { termination = reason; clearTimeout(timer); inFlight = undefined; removeRefresh(); setSession(null); };
     const unsubscribe = subscribeSession(() => {
         clearTimeout(timer);
@@ -104,16 +119,28 @@ export function createAuthentication(transport: AuthTransport) {
         }
     });
     function commit(pair: ReturnType<typeof validatePair>, replace = true) {
-        sessionStorage.setItem(REFRESH_KEY, pair.refresh);
+        const id = (!replace && (getSession()?.sessionId ??
+            (descriptor?.sub === pair.sub ? descriptor.id : null))) || crypto.randomUUID();
+        try {
+            sessionStorage.setItem(REFRESH_KEY, pair.refresh);
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify({ id, sub: pair.sub }));
+        } catch {
+            removeRefresh();
+            throw new AuthenticationError('UNAVAILABLE');
+        }
         refresh = pair.refresh;
+        descriptor = { id, sub: pair.sub };
+        const expected = sessionGeneration() + (replace ? 1 : 0);
         committing = true;
         try {
-            setSession({ token: pair.token, sub: pair.sub, role: pair.role, expiresAt: pair.expiresAt }, replace);
+            setSession({ token: pair.token, sub: pair.sub, role: pair.role, expiresAt: pair.expiresAt, sessionId: id }, replace);
         }
         finally {
             committing = false;
         }
+        assertCurrent(expected);
         update('authenticated');
+        assertCurrent(expected);
         timer = setTimeout(check, Math.min(2147483647, Math.max(0, pair.expiresAt - Date.now() - 60000)));
     }
     function check() { if (getSession() || refresh)
@@ -169,8 +196,12 @@ export function createAuthentication(transport: AuthTransport) {
             throw new AuthenticationError('SIGN_IN_REQUIRED');
         update(subject ? 'renewing' : 'recovering');
         // Remove BEFORE transmission: a reload during rotation cannot replay it.
-        sessionStorage.removeItem(REFRESH_KEY);
         try {
+            // Do not transmit a rotating credential when it cannot be consumed
+            // from persistent storage. Its descriptor is equally unavailable
+            // for a reload until this rotation completes successfully.
+            sessionStorage.removeItem(REFRESH_KEY);
+            sessionStorage.removeItem(SESSION_KEY);
             const value = await transport('refresh', { refreshToken: credential }, undefined);
             assertCurrent(generation);
             const pair = validatePair(value);
@@ -212,6 +243,7 @@ export function createAuthentication(transport: AuthTransport) {
             return inFlight;
         try {
             refresh = sessionStorage.getItem(REFRESH_KEY);
+            descriptor = restoredDescriptor();
         }
         catch {
             clear();
@@ -222,6 +254,8 @@ export function createAuthentication(transport: AuthTransport) {
                 await ensureReady();
             }
             catch { /* UI shows fresh sign-in. */ }
+        } else {
+            removeStored(SESSION_KEY);
         }
     }
     async function logout() {
