@@ -53,7 +53,7 @@ pins port 5173). It preserves two existing modules, which remotes import as `she
 | Module | Source | Contract |
 |---|---|---|
 | `./apiClient` | `src/shell/apiClient.ts` | `apiClient.request<T>(path, options)` — a facade over the single client in `src/core/http/api.ts` (gateway address, `Authorization`, `X-Correlation-Id`, timeout, 401 closes the session). Options are listed below |
-| `./session` | `src/shell/session.ts` | `session.user()` → `{ sub, role }` or `null`. The token is never reachable from it |
+| `./session` | `src/shell/session.ts` | `session.user()` → `{ sub, role }` or `null`; `session.sessionId()` → opaque noncredential string or `null`; `session.subscribe(listener)` → idempotent unsubscribe. No tokens are exposed |
 
 `@originjs/vite-plugin-federation` rewrites the `__v__css__…` placeholders in the entry only when
 they are wrapped in `'` or `"`, and Vite 8's minifier writes template literals, so the entry shipped

@@ -72,18 +72,36 @@ describe('Host recovery ownership (Auth transport doubles)', () => {
   });
   it('storage removal failures cannot interrupt in-memory invalidation or listeners', async () => {
     await login(); const listener = vi.fn(); subscriptions.push(session.subscribe(listener));
-    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => { throw new Error('denied'); });
+    vi.spyOn(Object.getPrototypeOf(sessionStorage), 'removeItem').mockImplementation(() => { throw new Error('denied'); });
     transport.mockResolvedValueOnce({}); await auth.logout();
     expect(session.user()).toBeNull(); expect(session.sessionId()).toBeNull(); expect(listener).toHaveBeenCalledOnce();
   });
   it('failed metadata persistence rolls back credentials and never publishes a login', async () => {
-    const original = Storage.prototype.setItem;
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (key, value) {
+    const original = sessionStorage.setItem;
+    vi.spyOn(Object.getPrototypeOf(sessionStorage) as Storage, 'setItem').mockImplementation(function (this: Storage, key, value) {
       if (key === 'synkro_session') throw new Error('quota'); original.call(this, key, value);
     });
     transport.mockResolvedValueOnce(pair());
     await expect(auth.login(credentials)).rejects.toMatchObject({ code: 'UNAVAILABLE' });
     expect(session.user()).toBeNull(); expect(session.sessionId()).toBeNull(); expect(sessionStorage.length).toBe(0);
+  });
+  it('a failing authentication observer cannot interrupt session transitions', async () => {
+    const off = auth.subscribe(() => { throw new Error('observer'); });
+    try { await login(); expect(session.sessionId()).toMatch(uuid); await auth.logout(); expect(session.sessionId()).toBeNull(); }
+    finally { off(); }
+  });
+  it('a synchronous logout observer cannot leave a committed login or renewal timer', async () => {
+    subscriptions.push(session.subscribe(() => { if (session.user()) void auth.logout(); }));
+    transport.mockResolvedValueOnce(pair());
+    await expect(auth.login(credentials)).rejects.toMatchObject({ code: 'CANCELLED' });
+    expect(session.user()).toBeNull(); expect(session.sessionId()).toBeNull(); expect(auth.state()).toBe('anonymous');
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it('storage failure before rotation transmits no refresh and invalidates', async () => {
+    await login(); vi.setSystemTime(Date.now() + 3540000);
+    vi.spyOn(Object.getPrototypeOf(sessionStorage), 'removeItem').mockImplementation(() => { throw new Error('denied'); });
+    await expect(auth.ensureReady()).rejects.toMatchObject({ code: 'INDETERMINATE' });
+    expect(transport).toHaveBeenCalledOnce(); expect(session.user()).toBeNull(); expect(session.sessionId()).toBeNull();
   });
   it.each(['preserved', 'missing', 'corrupt', 'wrong-subject', 'invalid-id'])('reload validates Auth before publishing %s metadata', async mode => {
     await login(); const id = session.sessionId(); const stored = sessionStorage.getItem('synkro_session');
@@ -106,7 +124,7 @@ describe('Host recovery ownership (Auth transport doubles)', () => {
   it.each(['absent', 'rejected', 'unreadable'])('metadata with %s credential cannot invent authentication', async mode => {
     sessionStorage.setItem('synkro_session', JSON.stringify({ id: crypto.randomUUID(), sub: 'alice' }));
     if (mode === 'rejected') { sessionStorage.setItem('synkro_refresh', 'invalid'); transport.mockRejectedValueOnce({ status: 401 }); }
-    if (mode === 'unreadable') vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('denied'); });
+    if (mode === 'unreadable') vi.spyOn(Object.getPrototypeOf(sessionStorage), 'getItem').mockImplementation(() => { throw new Error('denied'); });
     await auth.recover(); expect(session.user()).toBeNull(); expect(session.sessionId()).toBeNull();
   });
 });
