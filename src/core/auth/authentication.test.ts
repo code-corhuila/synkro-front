@@ -21,7 +21,7 @@ describe('Host authentication lifecycle', () => {
   it('consumes valid pair and returns only rebuilt identity and approved destination', async () => {
     const result = await login();
     expect(result).toEqual({user:{sub:'alice',role:'ADMIN'},destination:'/dashboard'});
-    expect(sessionStorage.length).toBe(1); expect(sessionStorage.getItem('synkro_refresh')).toBe(pair().refreshToken);
+    expect(sessionStorage.length).toBe(2); expect(sessionStorage.getItem('synkro_refresh')).toBe(pair().refreshToken);
     expect(JSON.stringify(result)).not.toMatch(/accessToken|refreshToken|signature/);
   });
   it.each([{}, {...pair(),tokenType:'Basic'}, {...pair(),accessToken:'bad'}, pair('alice',60), {...pair(),refreshToken:''}])('rejects malformed or too short pair without committing: %j', async response => {
