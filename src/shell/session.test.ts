@@ -30,9 +30,9 @@ describe('shell/session facade', () => {
       setSession({ token: 'secret-token', sub: 'alice', role: 'ADMIN' });
     });
 
-    it('the facade exposes exactly user', () => {
-      expect(Object.keys(session)).toEqual(['user']);
-      expect(Object.getOwnPropertyNames(session)).toEqual(['user']);
+    it('the facade exposes only identity and observation capabilities', () => {
+      expect(Object.keys(session)).toEqual(['user', 'sessionId', 'subscribe']);
+      expect(Object.getOwnPropertyNames(session)).toEqual(['user', 'sessionId', 'subscribe']);
     });
 
     it('the user object has exactly sub and role', () => {

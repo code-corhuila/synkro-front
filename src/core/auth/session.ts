@@ -5,6 +5,7 @@ export interface Session {
   sub: string;
   role: string;
   expiresAt?: number;
+  sessionId?: string;
 }
 
 let current: Session | null = null;
@@ -22,15 +23,22 @@ export function getSession(): Session | null {
 // read where it is used, so the bundler can drop what it guards.
 export function setSession(session: Session | null, replace = true) {
   if (replace) generation++;
-  current = session;
-  if (import.meta.env.VITE_DEV_SIGN_IN === 'true') {
+  current = session ? { ...session, sessionId: session.sessionId ??
+    (!replace && current?.sub === session.sub ? current.sessionId : undefined) ?? crypto.randomUUID() } : null;
+  if (import.meta.env.VITE_DEV_SIGN_IN === 'true') { try {
     if (session) {
-      sessionStorage.setItem(TOKEN_KEY, JSON.stringify(session));
+      sessionStorage.setItem(TOKEN_KEY, JSON.stringify(current));
     } else {
       sessionStorage.removeItem(TOKEN_KEY);
     }
+  } catch { /* Development persistence cannot block notification. */ } }
+  // Publish the entire snapshot first. A broken remote must not block logout
+  // or prevent the remaining consumers from seeing invalidation.
+  for (const listener of [...listeners]) {
+    if (listeners.has(listener)) {
+      try { listener(); } catch { /* Consumer failure is isolated. */ }
+    }
   }
-  listeners.forEach((l) => l());
 }
 
 export function subscribeSession(listener: () => void): () => void {
