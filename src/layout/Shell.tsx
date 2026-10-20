@@ -1,0 +1,35 @@
+import { useSyncExternalStore } from 'react';
+import { NavLink, Outlet } from 'react-router-dom';
+import { getSession, subscribeSession } from '../core/auth/session';
+import { copy } from './copy';
+import { navItemsFor } from './navigation';
+import './Shell.css';
+import { authentication } from '../core/http/api';
+
+export function Shell() {
+  // Subscribed for the same reason as RequireAuth: a session change while
+  // mounted (sign-in, 401) must re-scope the navigation.
+  const session = useSyncExternalStore(subscribeSession, getSession);
+
+  return (
+    <>
+      <header className="shell-header">
+        <strong>Synkro</strong>
+        {session && <span> {session.sub} ({copy.roles[session.role] ?? session.role})</span>}
+        <button type="button" onClick={() => void authentication.logout()}>Cerrar sesión</button>
+        <nav aria-label={copy.navigation.label} className="shell-nav">
+          <ul>
+            {navItemsFor(session?.role).map((item) => (
+              <li key={item.path}>
+                <NavLink to={item.path}>{item.label}</NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </header>
+      <main className="page">
+        <Outlet />
+      </main>
+    </>
+  );
+}

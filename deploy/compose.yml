@@ -1,0 +1,24 @@
+# Builds and runs this repository's host on its own, to try the image. The full
+# composition lives in synkro-infra. Values come from a .env that is never
+# committed (see .env.example):
+#
+#   docker compose --env-file .env -f deploy/compose.yml up --build
+services:
+  host:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        VITE_AUTH_PORTAL_ENTRY: ${VITE_AUTH_PORTAL_ENTRY:-http://localhost:5173/remotes/auth/assets/remoteEntry.js}
+        VITE_SALES_PORTAL_ENTRY: ${VITE_SALES_PORTAL_ENTRY:-http://localhost:5173/remotes/sales/assets/remoteEntry.js}
+        VITE_PRODUCTS_PORTAL_ENTRY: ${VITE_PRODUCTS_PORTAL_ENTRY:-http://localhost:5173/remotes/products/assets/remoteEntry.js}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+        VITE_CUSTOMERS_PORTAL_ENTRY: ${VITE_CUSTOMERS_PORTAL_ENTRY:-/remotes/customers/remoteEntry.js}
+        VITE_DEV_SIGN_IN: ${VITE_DEV_SIGN_IN:-false}
+    networks: [platform]
+    ports:
+      - "5173:80"
+
+networks:
+  platform:
+    external: true

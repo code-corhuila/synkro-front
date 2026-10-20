@@ -1,0 +1,21 @@
+/*
+ * The notice shown in place of a portal that failed to load. It is text, so the
+ * meaning does not rest on colour alone. The colour is the error tone for text
+ * on the card, which measures 4.5:1 or more in both themes.
+ */
+
+.portal-notice {
+  margin: var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-error-700);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Shown while a portal's code is loading, in the place the portal will take. */
+.portal-loading {
+  margin: var(--space-4) 0;
+  color: var(--color-text-secondary);
+}

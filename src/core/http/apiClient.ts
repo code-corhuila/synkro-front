@@ -1,0 +1,142 @@
+export interface ApiErrorBody {
+  error: string;
+  message: string;
+  details?: { field: string; message: string }[];
+  traceId: string;
+}
+
+// Explicit fields rather than `public` constructor parameters: the latter
+// are not allowed under tsconfig's `erasableSyntaxOnly`.
+export class ApiClientError extends Error {
+  readonly status: number;
+  readonly body: ApiErrorBody;
+  readonly retryAt?: number;
+
+  constructor(status: number, body: ApiErrorBody, retryAt?: number) {
+    super(body.message);
+    this.name = 'ApiClientError';
+    this.status = status;
+    this.body = body;
+    this.retryAt = retryAt;
+  }
+}
+
+const TIMEOUT_MS = 10_000;
+
+function cancelledError(traceId: string) {
+  return new ApiClientError(0, { error: 'CANCELLED', message: 'Request cancelled', traceId });
+}
+
+// `undefined` and `null` mean "no value": the parameter is left out.
+function buildPath(path: string, query: RequestOptions['query'] = {}): string {
+  const pairs = Object.entries(query)
+    .filter(([, value]) => value !== undefined && value !== null)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+  if (pairs.length === 0) return path;
+  return `${path}${path.includes('?') ? '&' : '?'}${pairs.join('&')}`;
+}
+
+// The client owns these two: a caller can neither replace nor add them.
+const PROTECTED_HEADERS = new Set(['authorization', 'x-correlation-id']);
+
+// A caller header replaces a default with the same name, whatever its case:
+// `content-type` replaces `Content-Type` rather than being sent beside it.
+function mergeHeaders(defaults: Record<string, string>, extra: Record<string, string> = {}) {
+  const merged = { ...defaults };
+  for (const [name, value] of Object.entries(extra)) {
+    if (PROTECTED_HEADERS.has(name.toLowerCase())) continue;
+    for (const existing of Object.keys(merged)) {
+      if (existing.toLowerCase() === name.toLowerCase()) delete merged[existing];
+    }
+    merged[name] = value;
+  }
+  return merged;
+}
+
+// The idempotency key is the caller's explicit option, so it wins over a
+// header of the same name passed in `headers`.
+function buildHeaders(options: RequestOptions, correlationId: string, token: string | null) {
+  const defaults = {
+    'Content-Type': 'application/json',
+    'X-Correlation-Id': correlationId,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+  const withCaller = mergeHeaders(defaults, options.headers);
+  if (options.idempotencyKey === undefined) return withCaller;
+  return mergeHeaders(withCaller, { 'Idempotency-Key': options.idempotencyKey });
+}
+
+export interface RequestOptions {
+  method?: string;
+  body?: unknown;
+  headers?: Record<string, string>;
+  query?: Record<string, string | number | boolean | null | undefined>;
+  idempotencyKey?: string;
+  signal?: AbortSignal;
+}
+
+export function createApiClient(
+  baseUrl: string,
+  getToken: () => string | null,
+  onUnauthorized: () => void
+) {
+  async function send<T>(path: string, options: RequestOptions = {}, auth?: { token: string | null }): Promise<T> {
+    const correlationId = crypto.randomUUID();
+    if (options.signal?.aborted) throw cancelledError(correlationId);
+
+    // One controller carries both the timeout and the caller's cancellation,
+    // so fetch sees a single signal. The timer sets `timedOut` before it
+    // aborts; the caller's abort does not, which is how the two are told apart.
+    const controller = new AbortController();
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, TIMEOUT_MS);
+    const forwardCancel = () => controller.abort();
+    options.signal?.addEventListener('abort', forwardCancel);
+    const token = auth ? auth.token : getToken();
+
+    try {
+      const res = await fetch(`${baseUrl}${buildPath(path, options.query)}`, {
+        method: options.method ?? 'GET',
+        headers: buildHeaders(options, correlationId, token),
+        body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+        signal: controller.signal,
+      });
+
+      if (res.status === 401 && !auth) {
+        onUnauthorized();
+      }
+
+      if (!res.ok) {
+        const body = await res
+          .json()
+          .catch(() => ({ error: 'INTERNAL_ERROR', message: 'Unexpected error', traceId: correlationId }));
+        const retry = res.headers?.get('Retry-After');
+        const retryAt = retry ? (/^\d+$/.test(retry) ? Date.now() + Number(retry) * 1000 : Date.parse(retry)) : undefined;
+        throw new ApiClientError(res.status, body, Number.isFinite(retryAt) ? retryAt : undefined);
+      }
+
+      if (res.status === 204) return undefined as T;
+      return (await res.json()) as T;
+    } catch (err) {
+      if (err instanceof ApiClientError) throw err;
+      if (timedOut) {
+        throw new ApiClientError(0, { error: 'TIMEOUT', message: 'Request timed out', traceId: correlationId });
+      }
+      if (options.signal?.aborted) throw cancelledError(correlationId);
+      throw new ApiClientError(0, { error: 'NETWORK_ERROR', message: 'Network error', traceId: correlationId });
+    } finally {
+      clearTimeout(timer);
+      options.signal?.removeEventListener('abort', forwardCancel);
+    }
+  }
+
+  return {
+    request: <T>(path: string, options?: RequestOptions) => send<T>(path, options),
+    // Internal capability only; shell/apiClient exports request alone.
+    authenticate: (operation: 'login' | 'refresh' | 'logout', body: unknown, signal?: AbortSignal, token?: string) =>
+      send<unknown>(`/api/v1/auth/${operation}`, { method: 'POST', body, signal }, { token: operation === 'logout' ? token ?? null : null }),
+  };
+}

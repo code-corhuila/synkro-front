@@ -1,0 +1,71 @@
+/*
+ * Host base styles: the page canvas, the layout frame, the type scale and the
+ * focus ring. Every value is a published token (src/theme/tokens.css). Do not
+ * add a literal colour here; the host stylesheets are checked for it in tests.
+ *
+ * Portals render inside the host's <main class="page">, so nothing here may
+ * style a bare element such as h1, h2, p or code: that would restyle the
+ * portal's own screens. The host's headings opt in with the .heading classes.
+ */
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1126px;
+  min-height: 100svh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.page {
+  padding: var(--space-6) var(--space-4);
+}
+
+.heading {
+  font-family: var(--font-family-heading);
+  font-weight: var(--font-weight-black);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.heading--page {
+  font-size: var(--font-size-2xl);
+  margin: var(--space-8) 0 var(--space-4);
+}
+
+.heading--section {
+  font-size: var(--font-size-xl);
+  margin: 0 0 var(--space-2);
+}
+
+/* The one focus ring, for every control, the host's and the portals'. The
+   brand red is a button fill in the dark theme (2.42:1 on its surface), so
+   there the ring takes the coral that reaches 3:1. */
+:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :focus-visible {
+    outline-color: var(--color-primary-300);
+  }
+}
