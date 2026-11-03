@@ -73,7 +73,8 @@ describe('route that does not exist', () => {
       visit('/definitely-not-a-route');
 
       expect(window.location.pathname).toBe('/login');
-      expect(screen.getByRole('button', {name:'Volver a cargar el acceso'})).toBeInTheDocument();
+      expect(screen.getByRole('status')).toHaveTextContent('Cargando módulo…');
+      expect(screen.queryByRole('button')).toBeNull();
     });
   });
 

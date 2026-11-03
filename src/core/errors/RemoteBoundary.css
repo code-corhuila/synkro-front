@@ -19,3 +19,26 @@
   margin: var(--space-4) 0;
   color: var(--color-text-secondary);
 }
+
+/* The buttons of a notice: a wrapping row, so a narrow screen stacks them. */
+.portal-notice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+/* The panel that replaces the login form: the width of the login card, centred. */
+.portal-notice--access {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 28rem;
+  margin-inline: auto;
+  margin-block: var(--space-12);
+  padding: var(--space-6);
+}
+
+/* The message opens the panel: the panel's padding is its only top space. */
+.portal-notice--access > p:first-child {
+  margin-top: 0;
+}
