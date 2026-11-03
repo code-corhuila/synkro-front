@@ -1,0 +1,48 @@
+/*
+ * The dashboard: link cards from the access matrix and the area where the
+ * Sales summary is mounted. Tokens only; the focus ring is the shared one.
+ */
+
+.dashboard-links ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--space-4);
+  margin: var(--space-6) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  height: 100%;
+  box-sizing: border-box;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.dashboard-link:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.dashboard-link__label {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-black);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.dashboard-link__description {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.dashboard-summary {
+  margin-top: var(--space-8);
+}

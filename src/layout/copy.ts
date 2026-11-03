@@ -21,7 +21,22 @@ export const copy = {
   dashboard: {
     title: 'Panel',
     signedInAs: (user: string) => `Sesión iniciada como ${user}.`,
+    shortcutsLabel: 'Accesos del panel',
+    shortcutsTitle: 'Accesos',
+    summaryTitle: 'Ventas',
+    summaryUnavailable: 'El resumen de ventas no está disponible en este momento.',
   },
+  // Short line under each destination on the dashboard. Keys are the paths.
+  shortcuts: {
+    '/customers': { label: 'Clientes', description: 'Registra y consulta a tus clientes.' },
+    '/products': { label: 'Productos', description: 'Gestiona el catálogo, las categorías y el stock.' },
+    '/stock': { label: 'Existencias', description: 'Consulta las existencias disponibles para vender.' },
+    '/stock-alerts': { label: 'Alertas de stock', description: 'Revisa los productos con stock bajo.' },
+    '/sales': { label: 'Ventas', description: 'Registra ventas y consulta su historial.' },
+    '/sales/reports/daily': { label: 'Reporte diario', description: 'Totales de ventas por día (UTC).' },
+    '/sales/reports/monthly': { label: 'Reporte mensual', description: 'Totales de ventas por mes (UTC).' },
+    '/sales/reports/top-products': { label: 'Productos más vendidos', description: 'Los productos con más unidades vendidas.' },
+  } as Record<string, { label: string; description: string }>,
   notFound: {
     title: 'Página no encontrada',
     message: 'La ruta que buscas no existe o fue movida.',
@@ -34,5 +49,13 @@ export const copy = {
   portal: {
     loading: 'Cargando módulo…',
     unavailable: 'Este módulo no está disponible en este momento.',
+    retry: 'Reintentar módulo',
+  },
+  // The recovery panel that replaces the login form when its remote fails to load.
+  access: {
+    unavailable: 'No pudimos cargar el acceso.',
+    retry: 'Reintentar acceso',
+    home: 'Ir al inicio',
+    indeterminate: 'No pudimos recuperar la sesión. Inicia sesión de nuevo.',
   },
 } as const;
