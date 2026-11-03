@@ -1,6 +1,11 @@
 /* design-system.md, Buttons. Tokens only. */
 
 .button {
+  /* A link wears the same classes (ButtonLink), so it is laid out like a button. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
   font: inherit;
   font-weight: var(--font-weight-medium);
   padding: var(--space-2) var(--space-4);
