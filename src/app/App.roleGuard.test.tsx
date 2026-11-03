@@ -59,6 +59,6 @@ describe('portal routes are guarded by role', () => {
   it('keeps the menu working after a denied route', () => {
     visitAs('INVENTORY', '/sales');
 
-    expect(screen.getByRole('navigation')).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Principal' })).toBeInTheDocument();
   });
 });

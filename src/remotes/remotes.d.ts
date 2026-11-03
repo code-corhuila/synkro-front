@@ -15,6 +15,11 @@ declare module 'salesPortal/App' {
   const App: ComponentType
   export default App
 }
+declare module 'salesPortal/DashboardSummary' {
+  import type { ComponentType } from 'react'
+  const DashboardSummary: ComponentType
+  export default DashboardSummary
+}
 declare module 'authPortal/Login' {
   import type { ComponentType } from 'react';
   const Login: ComponentType<{returnTo?:string}>;
