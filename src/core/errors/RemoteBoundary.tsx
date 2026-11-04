@@ -1,11 +1,20 @@
 import { Component, useEffect, useState, type ReactNode } from 'react';
 import { copy } from '../../layout/copy';
+import { Button } from '../../shared/ui/Button';
 import './RemoteBoundary.css';
 
 interface Props {
   load: () => Promise<unknown>;
   portalName: string;
   children: (loaded: unknown) => ReactNode;
+  // What the failure notice says and offers. The defaults are the generic
+  // "module unavailable" notice; the login passes its own words and a way home.
+  unavailableMessage?: string;
+  retryLabel?: string;
+  // Extra controls beside the retry, in the same row of the same panel.
+  actions?: ReactNode;
+  // The login-sized panel that stands in for the form.
+  variant?: 'access';
 }
 
 type Load = { status: 'loading' } | { status: 'loaded'; value: unknown } | { status: 'error'; error: Error };
@@ -57,7 +66,16 @@ export class RemoteBoundary extends Component<Props, BoundaryState> {
 
   render() {
     if (this.state.hasError) {
-      return <div className="portal-notice"><p role="status">{copy.portal.unavailable}</p><button type="button" onClick={() => this.setState({ hasError: false })}>Reintentar módulo</button></div>;
+      const { unavailableMessage = copy.portal.unavailable, retryLabel = copy.portal.retry, actions, variant } = this.props;
+      return (
+        <div className={variant ? `portal-notice portal-notice--${variant}` : 'portal-notice'}>
+          <p role="status">{unavailableMessage}</p>
+          <div className="portal-notice__actions">
+            <Button onClick={() => this.setState({ hasError: false })}>{retryLabel}</Button>
+            {actions}
+          </div>
+        </div>
+      );
     }
     return <PortalLoader load={this.props.load}>{this.props.children}</PortalLoader>;
   }
