@@ -12,6 +12,25 @@ export const copy = {
     users: 'Usuarios',
     serviceTokens: 'Tokens de servicio',
   },
+  sidebar: {
+    homeLink: 'Ir al panel',
+    logoAlt: 'Synkro Tech',
+    collapse: 'Contraer menú',
+    expand: 'Expandir menú',
+    open: 'Abrir menú',
+    accountMenu: (user: string) => `Menú de cuenta de ${user}`,
+    accountLabel: 'Cuenta',
+    sessionExpires: 'Tu sesión vence',
+    logout: 'Cerrar sesión',
+    breadcrumbRoot: 'Inicio',
+  },
+  // Menu sections, in display order. Each lists the paths it holds.
+  sections: [
+    { label: 'General', paths: ['/dashboard'] },
+    { label: 'Comercial', paths: ['/customers', '/sales', '/stock'] },
+    { label: 'Inventario', paths: ['/products', '/stock-alerts'] },
+    { label: 'Administración', paths: ['/users', '/service-tokens'] },
+  ] as ReadonlyArray<{ label: string; paths: readonly string[] }>,
   // How a role key is named to a person. A role with no entry shows its key.
   roles: {
     ADMIN: 'Administrador',

@@ -28,14 +28,15 @@ function navLabels() {
 describe('Shell navigation', () => {
   beforeEach(() => setSession(null));
 
+  // The menu is grouped by section (General, Comercial, Inventario, Administración).
   it('shows ADMIN every screen except the salesperson-only stock lookup', () => {
     renderShellAs('ADMIN');
     expect(navLabels()).toEqual([
       'Panel',
       'Clientes',
+      'Ventas',
       'Productos',
       'Alertas de stock',
-      'Ventas',
       'Usuarios',
       'Tokens de servicio',
     ]);
@@ -43,7 +44,7 @@ describe('Shell navigation', () => {
 
   it('shows SALESPERSON dashboard, customers, stock lookup and sales', () => {
     renderShellAs('SALESPERSON');
-    expect(navLabels()).toEqual(['Panel', 'Clientes', 'Existencias', 'Ventas']);
+    expect(navLabels()).toEqual(['Panel', 'Clientes', 'Ventas', 'Existencias']);
   });
 
   it('shows INVENTORY dashboard, products and stock alerts', () => {
@@ -72,12 +73,14 @@ describe('Shell navigation', () => {
     ['INVENTORY', 'Inventario'],
   ])('shows the signed-in user and the Spanish name of the %s role', (role, label) => {
     renderShellAs(role);
-    expect(screen.getByRole('banner')).toHaveTextContent('someone (' + label + ')');
+    const account = screen.getByRole('button', { name: 'Menú de cuenta de someone' });
+    expect(account).toHaveTextContent('someone');
+    expect(account).toHaveTextContent(label);
   });
 
   it('shows the raw role key for a role it has no name for', () => {
     renderShellAs('SOMETHING_ELSE');
-    expect(screen.getByRole('banner')).toHaveTextContent('someone (SOMETHING_ELSE)');
+    expect(screen.getByRole('button', { name: 'Menú de cuenta de someone' })).toHaveTextContent('SOMETHING_ELSE');
   });
 
   it('renders a header and the active route inside the outlet area', () => {
