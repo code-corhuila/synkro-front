@@ -1,7 +1,7 @@
 /// <reference types="node" />
 // Test-only reader for the token stylesheets. It reads the CSS text the way a
 // reviewer would: the custom properties on :root, and the dark overrides
-// inside the prefers-color-scheme block. The app never parses CSS at runtime.
+// inside the :root[data-theme='dark'] block. The app never parses CSS at runtime.
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -22,7 +22,7 @@ export interface ThemeTokens {
 }
 
 const COMMENT = /\/\*[\s\S]*?\*\//g;
-const DARK_BLOCK = /@media \(prefers-color-scheme: dark\)\s*\{\s*:root\s*\{([\s\S]*?)\}\s*\}/;
+const DARK_BLOCK = /:root\[data-theme='dark'\]\s*\{([\s\S]*?)\}/;
 const ROOT_BLOCK = /:root\s*\{([\s\S]*?)\}/;
 const SECTION_MARKER = /\/\* \[(light|dark|shared)\] \*\//;
 
@@ -40,7 +40,7 @@ export function declarations(block: string): Declarations {
 }
 
 // The published stylesheet: :root holds the light theme, and the dark theme is
-// the only override, inside the prefers-color-scheme block.
+// the only override, in the :root[data-theme='dark'] block.
 export function parsePublishedSheet(css: string): ThemeTokens {
   const source = stripComments(css);
   const darkMatch = source.match(DARK_BLOCK);
