@@ -1,57 +1,438 @@
 /*
- * The signed-in frame: header, brand, session line and the main navigation.
- * Colours and type come from the published tokens only.
+ * The signed-in frame: sidebar navigation, top bar and the portal area.
+ * Colours and type come from the published tokens only. The sidebar is the
+ * navy of --color-neutral-900 in both themes; its text uses the light neutrals.
  */
 
-.shell-header {
+.app-shell {
+  display: flex;
+  min-height: 100svh;
+}
+
+.topbar-host {
+  display: contents;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── Sidebar ───────────────────────────────────────────── */
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  width: 248px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-3);
+  background: var(--color-neutral-900);
+  color: var(--color-neutral-50);
+  transition: width 180ms ease;
+  z-index: 20;
+}
+
+.sidebar__brand {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2) var(--space-6);
-  padding: var(--space-4) var(--space-6);
-  background: var(--color-bg-card);
-  color: var(--color-text-primary);
-  box-shadow: var(--shadow-sm);
+  justify-content: space-between;
+  gap: var(--space-2);
 }
 
-.shell-header strong {
-  font-family: var(--font-family-heading);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-black);
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
-}
-
-.shell-header span {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.shell-nav ul {
+/* The logo is a picture drawn for a light surface, so its card stays light in both themes. */
+.sidebar__logo-card {
   display: flex;
-  flex-wrap: wrap;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-neutral-50);
+  border-radius: var(--radius-md);
+}
+
+.sidebar__logo {
+  display: block;
+  width: 112px;
+  height: 70px;
+  object-fit: contain;
+  transition: width 180ms ease, height 180ms ease;
+}
+
+.sidebar__collapse {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  color: var(--color-neutral-50);
+  background: transparent;
+  border: 1px solid var(--color-primary-900);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.sidebar__collapse .icon {
+  width: 18px;
+  height: 18px;
+  transition: transform 180ms ease;
+}
+
+.sidebar__nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-4);
+}
+
+.nav-group ul {
   margin: 0;
   padding: 0;
   list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.shell-nav a {
-  color: var(--color-text-secondary);
+.nav-group__label {
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-primary-100);
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-neutral-50);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   text-decoration: none;
-  padding: var(--space-1) 0;
+  white-space: nowrap;
 }
 
-.shell-nav a:hover {
-  color: var(--color-text-primary);
-  text-decoration: underline;
+.nav-link:hover {
+  background: var(--color-primary-900);
 }
 
-/* The current item is marked by weight and underline, not by colour alone.
-   The brand red is a button fill: as text it is too dark on the dark surface. */
-.shell-nav a.active {
+/* The current item is a filled pill; aria-current is what marks it for everyone else. */
+.nav-link[aria-current='page'] {
+  background: var(--color-primary-500);
+  color: var(--color-neutral-50);
+  font-weight: var(--font-weight-semibold);
+}
+
+.nav-link__label {
+  flex: 1;
+}
+
+/* ── Account ───────────────────────────────────────────── */
+.account {
+  position: relative;
+}
+
+.account__trigger {
+  width: 100%;
+  min-height: 56px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  color: var(--color-neutral-50);
+  font: inherit;
+  text-align: left;
+  background: transparent;
+  border: 1px solid var(--color-primary-900);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.account__trigger:hover {
+  background: var(--color-primary-900);
+}
+
+.account__trigger .icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 180ms ease;
+}
+
+.account__trigger[aria-expanded='true'] .icon {
+  transform: rotate(180deg);
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-neutral-900);
+  background: var(--color-primary-100);
+}
+
+.avatar--large {
+  width: 44px;
+  height: 44px;
+  color: var(--color-primary-900);
+  background: var(--color-primary-50);
+}
+
+.account__identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.account__name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.account__role {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary-100);
+}
+
+.account-menu {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  left: 0;
+  width: 264px;
+  max-width: calc(100vw - var(--space-8));
+  overflow: hidden;
   color: var(--color-text-primary);
-  text-decoration: underline;
-  text-underline-offset: var(--space-1);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-text-disabled);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.account-menu__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-text-disabled);
+}
+
+.account-menu__details {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.account-menu__name {
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.role-badge {
+  align-self: flex-start;
+  margin-top: var(--space-1);
+  padding: 2px var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary-900);
+  background: var(--color-primary-50);
+  border-radius: var(--radius-sm);
+}
+
+.account-menu__session {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-text-disabled);
+}
+
+.account-menu__session time {
+  font-family: var(--font-family-mono);
+  color: var(--color-text-primary);
+}
+
+.account-menu__logout {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-secondary-action);
+  background: var(--color-bg-card);
+  border: none;
+  cursor: pointer;
+}
+
+.account-menu__logout:hover {
+  background: var(--color-primary-50);
+  color: var(--color-primary-900);
+}
+
+/* ── Collapsed: icons only. Labels stay in the accessibility tree. ── */
+.sidebar--collapsed {
+  width: 76px;
+}
+
+.sidebar--collapsed .sidebar__brand {
+  justify-content: center;
+}
+
+.sidebar--collapsed .sidebar__logo {
+  width: 36px;
+  height: 24px;
+}
+
+.sidebar--collapsed .sidebar__collapse .icon {
+  transform: rotate(180deg);
+}
+
+.sidebar--collapsed .nav-group__label,
+.sidebar--collapsed .account__identity,
+.sidebar--collapsed .account__trigger > .icon {
+  display: none;
+}
+
+.sidebar--collapsed .nav-link__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.sidebar--collapsed .nav-link,
+.sidebar--collapsed .account__trigger {
+  justify-content: center;
+}
+
+/* ── Top bar ───────────────────────────────────────────── */
+.topbar {
+  min-height: 64px;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-8);
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-text-disabled);
+}
+
+.topbar__lead,
+.topbar__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+}
+
+.topbar__menu {
+  display: none;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  color: var(--color-text-primary);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-text-disabled);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.topbar__breadcrumb {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.topbar__breadcrumb strong {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.topbar__date {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg-overlay);
+  z-index: 15;
+}
+
+/* ── Narrow screens: the sidebar is a drawer ───────────── */
+@media (max-width: 767px) {
+  .sidebar-backdrop {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    transform: translateX(-100%);
+    transition: transform 180ms ease;
+  }
+
+  .sidebar--open {
+    transform: translateX(0);
+  }
+
+  .sidebar__collapse {
+    display: none;
+  }
+
+  .topbar {
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .topbar__menu {
+    display: grid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebar__logo,
+  .sidebar__collapse .icon,
+  .account__trigger .icon {
+    transition: none;
+  }
 }

@@ -20,7 +20,7 @@ const LITERAL_COLOUR = /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?)\(|\b(?:white|black|re
 
 // The classes the host's own screens (header, navigation, not-found page,
 // unavailable notice) must use, and that a host stylesheet must define.
-const SCREEN_CLASSES = ['shell-header', 'shell-nav', 'page', 'portal-notice'];
+const SCREEN_CLASSES = ['sidebar__nav', 'topbar', 'page', 'portal-notice'];
 
 // A selector that starts with one of these elements styles it everywhere in the
 // page, portals included. Portals render inside the host's <main class="page">.
