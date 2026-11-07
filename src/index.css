@@ -12,6 +12,14 @@
   color-scheme: light dark;
 }
 
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
   background: var(--color-bg-page);
@@ -64,8 +72,6 @@ body {
   outline-offset: 2px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :focus-visible {
-    outline-color: var(--color-primary-300);
-  }
+:root[data-theme='dark'] :focus-visible {
+  outline-color: var(--color-primary-300);
 }

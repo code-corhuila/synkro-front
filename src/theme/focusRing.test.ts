@@ -6,7 +6,7 @@ import { parsePublishedSheet, readSourceFiles, readThemeFile, resolveToken } fro
 const published = parsePublishedSheet(readThemeFile('tokens.css'));
 const hostStylesheets = [...readSourceFiles()].filter(([path]) => path.endsWith('.css') && !path.startsWith('theme/'));
 
-const DARK = '(prefers-color-scheme: dark)';
+const DARK_SELECTOR = ":root[data-theme='dark'] :focus-visible";
 
 const focusRules = hostStylesheets.flatMap(([path, css]) =>
   parseRules(css)
@@ -20,15 +20,15 @@ function ringToken(rule: CssRule | undefined): string | undefined {
   return outline?.[1].match(/var\((--[\w-]+)\)/)?.[1];
 }
 
-const lightRing = ringToken(focusRules.find((rule) => rule.media === null));
-const darkRing = ringToken(focusRules.find((rule) => rule.media === DARK));
+const lightRing = ringToken(focusRules.find((rule) => rule.selectors.join() === ':focus-visible'));
+const darkRing = ringToken(focusRules.find((rule) => rule.selectors.join() === DARK_SELECTOR));
 
 const valueIn = (theme: 'light' | 'dark', token: string | undefined): string => resolveToken(published, theme, token ?? '');
 
 describe('focus ring', () => {
   it('is one shared :focus-visible rule in the base stylesheet, not one per component', () => {
     expect(focusRules.length).toBeGreaterThan(0);
-    expect(focusRules.filter((rule) => rule.selectors.join() !== ':focus-visible').map((rule) => `${rule.path}: ${rule.selectors}`)).toEqual([]);
+    expect(focusRules.filter((rule) => ![':focus-visible', DARK_SELECTOR].includes(rule.selectors.join())).map((rule) => `${rule.path}: ${rule.selectors}`)).toEqual([]);
     expect([...new Set(focusRules.map((rule) => rule.path))]).toEqual(['index.css']);
   });
 

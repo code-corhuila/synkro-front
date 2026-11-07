@@ -9,6 +9,7 @@ import { createAuthLoader } from './authLoader';
 import { authentication } from '../core/http/api';
 import { copy } from '../layout/copy';
 import { ButtonLink } from '../shared/ui/ButtonLink';
+import { ThemeSelector } from '../shared/ui/ThemeSelector';
 
 const defaultLoad = createAuthLoader(
   () => import('authPortal/Login'),
@@ -31,6 +32,7 @@ export function AuthLogin({ load = defaultLoad }: { load?: () => Promise<unknown
 
   return (
     <main className="page">
+      <div className="theme-login-bar"><ThemeSelector /></div>
       {authState === 'indeterminate' && (
         <p role="alert" className="portal-notice portal-notice--access">{copy.access.indeterminate}</p>
       )}

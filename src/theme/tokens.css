@@ -5,8 +5,11 @@
  * them with var(--token-name) and never redefine them. The names are the
  * contract: do not rename or add tokens here without a design-system change.
  *
- * The dark theme is selected by the operating system (prefers-color-scheme)
- * and it overrides only names that the light theme defines.
+ * The dark theme is selected by <html data-theme="dark">, which the host sets
+ * from the person's Light / Dark / System preference (src/theme/themePreference.ts;
+ * public/theme-init.js applies it before first paint). prefers-color-scheme is
+ * read there, once, for System; no stylesheet reads it. The dark block overrides
+ * only names that the light theme defines.
  */
 
 :root {
@@ -94,42 +97,41 @@
   --shadow-lg: 0 14px 32px rgba(181, 26, 40, 0.18);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Surface: its own dark scale, not a tint of --color-primary */
-    --color-bg-page: #12141C;
-    --color-bg-card: #161E2F;
-    --color-bg-overlay: rgba(0, 0, 0, 0.55);
+/* Dark theme */
+:root[data-theme='dark'] {
+  /* Surface: its own dark scale, not a tint of --color-primary */
+  --color-bg-page: #12141C;
+  --color-bg-card: #161E2F;
+  --color-bg-overlay: rgba(0, 0, 0, 0.55);
 
-    /* Primary: the same red and coral family, retuned for a dark surface */
-    --color-primary-300: #FFA586;
-    --color-primary-500: #A82C24;
-    --color-primary-700: #C4342B;
+  /* Primary: the same red and coral family, retuned for a dark surface */
+  --color-primary-300: #FFA586;
+  --color-primary-500: #A82C24;
+  --color-primary-700: #C4342B;
 
-    --color-secondary-action: var(--color-primary-300);
+  --color-secondary-action: var(--color-primary-300);
 
-    /* Semantic colors: saturated text over a translucent background */
-    --color-success-50: rgba(52, 211, 153, 0.16);
-    --color-success-700: #34D399;
-    --color-warning-50: rgba(251, 191, 36, 0.16);
-    --color-warning-700: #FBBF24;
-    --color-error-50: rgba(251, 113, 133, 0.16);
-    --color-error-700: #FB7185;
-    --color-info-50: rgba(251, 191, 36, 0.16);
-    --color-info-700: #FBBF24;
+  /* Semantic colors: saturated text over a translucent background */
+  --color-success-50: rgba(52, 211, 153, 0.16);
+  --color-success-700: #34D399;
+  --color-warning-50: rgba(251, 191, 36, 0.16);
+  --color-warning-700: #FBBF24;
+  --color-error-50: rgba(251, 113, 133, 0.16);
+  --color-error-700: #FB7185;
+  --color-info-50: rgba(251, 191, 36, 0.16);
+  --color-info-700: #FBBF24;
 
-    --color-text-primary: #F5EDE6;
-    --color-text-secondary: #B3A79C;
-    --color-text-disabled: #5C554E;
+  --color-text-primary: #F5EDE6;
+  --color-text-secondary: #B3A79C;
+  --color-text-disabled: #5C554E;
 
-    /* Borders and shadows, dark theme: an ambient black shadow separates a card from the canvas */
-    --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-lg: 14px;
-    --radius-full: 9999px;
+  /* Borders and shadows, dark theme: an ambient black shadow separates a card from the canvas */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
 
-    --shadow-sm: 0 4px 10px rgba(0, 0, 0, 0.30);
-    --shadow-md: 0 10px 22px rgba(0, 0, 0, 0.35);
-    --shadow-lg: 0 20px 44px rgba(0, 0, 0, 0.40);
-  }
+  --shadow-sm: 0 4px 10px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0 10px 22px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 20px 44px rgba(0, 0, 0, 0.40);
 }
