@@ -21,9 +21,21 @@ drawer is `inert` while closed and opens from the top bar; Tab shows the sidebar
 A bug found here and fixed: an open drawer left its dark backdrop over the page after widening the window; the
 backdrop is now shown only below 768 px.
 
-## Pending / limits
+## Integrated completion — 2026-11-07
 
-- Portals were not rendered inside the new shell in a browser (their remotes need the integrated deployment).
-- SALESPERSON and INVENTORY menus are covered by tests, not looked at in the browser.
-- Sign-out was not exercised against the real Auth API.
+- Candidate `bb1f104` passed 445 tests with 3 preexisting TODO cases under Node 22.23.3.
+  Lint, TypeScript/Vite and the production-build check passed.
+- Private root `2f3dcf72d1142e3e872ae5d76c7992eb077ed42d` passed 32 real-browser checkpoints.
+  Auth, Customers, Products, Sales and the dashboard were loaded inside the new Shell in both
+  themes. All three human-role menus were checked against their real signed-in identities.
+- Collapse/expand preserved the route and accessible labels. Arrow keys changed the theme.
+  The narrow drawer returned focus on Escape and its backdrop stayed hidden after widening.
+- Blocked localStorage allowed real login, theme changes and internal navigation. The real
+  logout request returned the user to login while retaining the theme preference.
+- The local PNG loaded and used object-fit contain. Desktop portal routes had no document overflow.
+- Export and cleanup passed. The supplementary suite returned 0 and the runner returned the
+  expected review-ready code 2. Release review and private CI remain separate.
+
+## Scope limits
+
 - Name, email and the open-alerts counter from the mockup need Auth/API decisions (see the design).
