@@ -64,7 +64,7 @@ describe('navigating between portals in the host', () => {
     window.history.pushState({}, '', '/sales');
     render(<App />);
 
-    expect(await screen.findByRole('heading', { name: 'Panel' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Panel de control' })).toBeInTheDocument();
     expect(window.location.pathname).toBe('/dashboard');
     expect(screen.queryByText(UNAVAILABLE)).not.toBeInTheDocument();
   });
