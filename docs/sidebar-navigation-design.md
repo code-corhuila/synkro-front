@@ -28,4 +28,5 @@ The access matrix stays in `navigation.ts`; routes, guards, session and logout a
 
 ## Out of scope
 
-Dashboard content and titles, routes, guards, role rules, the Auth/Customers/Products/Sales portals.
+Dashboard content, routes, guards and role rules retain their existing owners. The approved
+dashboard heading is restored to "Panel de control" in the Host copy. Portals consume the shared theme.
