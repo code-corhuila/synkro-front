@@ -20,7 +20,8 @@ The access matrix stays in `navigation.ts`; routes, guards, session and logout a
 | Account | Card at the bottom opens a menu (`role="menu"`): avatar, name, role badge, "Tu sesión vence" (only when `expiresAt` is known) and "Cerrar sesión" (`authentication.logout()`). Esc or an outside click closes it and Esc returns focus to the trigger. |
 | Identity | The session has no name or email, only `sub` and the role. The mockup's name and email are **not** invented: the account shows `sub`. Decision pending with Auth. |
 | Alert counter | Not shown: it needs `GET /api/v1/stock-alerts?status=OPEN&limit=1`, an API call the Host does not make today. Pending. |
-| Top bar | A non-heading breadcrumb ("Inicio / Sección"), the shared theme selector and the date in Spanish. Every screen keeps its single `h1`, so «Panel» is not repeated. |
+| Top bar | A non-heading breadcrumb ("Inicio / Sección"), the shared theme selector and the date in Spanish. Every screen keeps its single `h1`, so the dashboard title is not repeated. |
+| Dashboard title | The `h1` reads "Panel de control"; the nav item keeps the short label "Panel" (`copy.navigation.dashboard`), since the sidebar row and the page heading answer different questions. |
 | Logo | `public/synkro-logo.png` (the supplied Synkro Tech logo) on a light card in both themes. |
 | Style | Tokens only (no new tokens, no literals). The sidebar is `--color-neutral-900` in both themes. Its focus ring is `--color-primary-100`, tested at 3:1 on that navy. |
 | Layout | `#root` no longer caps the width when the shell is shown; the page area caps itself at 1126 px. The login keeps its previous layout. |

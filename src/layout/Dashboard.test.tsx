@@ -22,7 +22,7 @@ describe('dashboard copy', () => {
     window.history.pushState({}, '', '/dashboard');
     render(<App />);
 
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Panel');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Panel de control');
     expect(screen.getByText('Sesión iniciada como alice.')).toBeInTheDocument();
   });
 });
