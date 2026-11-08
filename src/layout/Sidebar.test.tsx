@@ -155,7 +155,7 @@ describe('Sidebar', () => {
       expect(screen.getByTestId('sidebar-backdrop')).toBeVisible();
     });
 
-    it('closes with Escape, with the backdrop and after choosing a destination', async () => {
+    it('closes with Escape, with the backdrop and after choosing a destination, returning focus to the opener each time', async () => {
       mobileViewport(true);
       renderShell();
       const open = screen.getByRole('button', { name: 'Abrir menú' });
@@ -163,14 +163,17 @@ describe('Sidebar', () => {
       await userEvent.click(open);
       await userEvent.keyboard('{Escape}');
       expect(sidebar()).not.toHaveClass('sidebar--open');
+      expect(open).toHaveFocus();
 
       await userEvent.click(open);
       await userEvent.click(screen.getByTestId('sidebar-backdrop'));
       expect(sidebar()).not.toHaveClass('sidebar--open');
+      expect(open).toHaveFocus();
 
       await userEvent.click(open);
       await userEvent.click(screen.getByRole('link', { name: 'Clientes' }));
       expect(sidebar()).not.toHaveClass('sidebar--open');
+      expect(screen.getByRole('button', { name: 'Abrir menú' })).toHaveFocus();
     });
 
     it('is never inert on a wide screen', () => {
@@ -178,6 +181,19 @@ describe('Sidebar', () => {
       renderShell();
 
       expect(sidebar()).not.toHaveAttribute('inert');
+    });
+
+    it('keeps the page behind the open drawer out of the tab order and the accessibility tree', async () => {
+      mobileViewport(true);
+      renderShell();
+      const content = () => screen.getByRole('main').closest('.content');
+      expect(content()).not.toHaveAttribute('inert');
+
+      await userEvent.click(screen.getByRole('button', { name: 'Abrir menú' }));
+      expect(content()).toHaveAttribute('inert');
+
+      await userEvent.keyboard('{Escape}');
+      expect(content()).not.toHaveAttribute('inert');
     });
   });
 });
