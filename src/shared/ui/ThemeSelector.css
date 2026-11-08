@@ -1,0 +1,33 @@
+/* Theme selector. Tokens only; the focus ring is the shared :focus-visible rule. */
+
+.theme-selector {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.theme-selector__label {
+  font-weight: var(--font-weight-semibold);
+}
+
+.theme-selector__option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.theme-selector__option input {
+  margin: 0;
+  accent-color: var(--color-primary-500);
+}
+
+.theme-login-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-4) var(--space-4) 0;
+}
