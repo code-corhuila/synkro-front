@@ -28,13 +28,27 @@ Observed in the in-app browser (800x600 pane):
 - Stored `purple` → System. Sistema follows an emulated device change without reload.
 - Titles "Panel" and "Ventas" are unchanged from the repository's current copy.
 
-## Pending / limits
+## Initial limits and integrated follow-up
 
-- **Portals not exercised in a browser.** Their remotes (Auth, Products, Sales, Customers) need the host on
-  fixed port 5173 plus their own ports and real APIs; not run here. The Sales/Products changes are covered
-  by their style contract tests and builds only. Auth (React) and Customers (Angular) were checked by
-  source search only: no `prefers-color-scheme` rules, tokens only.
-- Blocked `localStorage` verified in unit tests only, not in a browser with site data blocked.
+- The initial dev-server checks above covered the Host with fixtures. The integrated follow-up below
+  exercised Auth, Products, Sales and Customers and blocked storage with real services.
 - The dev sign-in screen (`VITE_DEV_SIGN_IN`) has no selector; it is replaced by the Auth portal in production.
-- The task text names "Panel de control" and "Resumen de ventas"; the repository shows "Panel" (Host) and
-  "Resumen de ventas" (Sales portal, exercised by its own tests). Neither was changed.
+- The sidebar follow-up restores the approved heading "Panel de control"; the short navigation label
+  remains "Panel", and Sales retains "Resumen de ventas".
+
+## Integrated verification — 2026-11-07
+
+The combined Host candidate `bb1f104` includes this theme branch and the sidebar, title and
+focus corrections. It passed 445 tests with 3 preexisting TODO cases on Node 22.23.3.
+Sales `36b4527` passed 348 tests. Products `3cd7ed1` passed 1,023 tests, then its 22 compiled-build
+checks passed after building, covering the case initially skipped while dist was absent.
+All three lint, TypeScript/build and production boundary checks passed.
+
+Private acceptance root `2f3dcf72d1142e3e872ae5d76c7992eb077ed42d` passed 32 real-browser checkpoints
+with the owned Gateway/Auth/Products/Sales/Customers/Workflow stack. Theme checks covered ADMIN,
+SALESPERSON and INVENTORY, manual choice opposite to the device, both themes across the portals,
+reload persistence, System emulation, native radio arrow keys, blocked localStorage with real
+login/navigation and real logout preserving the preference. Live computed styles verified the
+Sales/Products legacy fallback when data-theme is absent and its exclusion for explicit light.
+Export and inner/outer cleanup passed. The supplementary runner's expected code is 2
+(ready for review); its owning suite returned 0. Private CI and release approval remain separate.
