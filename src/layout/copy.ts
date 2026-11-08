@@ -38,7 +38,7 @@ export const copy = {
     INVENTORY: 'Inventario',
   } as Record<string, string>,
   dashboard: {
-    title: 'Panel',
+    title: 'Panel de control',
     signedInAs: (user: string) => `Sesión iniciada como ${user}.`,
     shortcutsLabel: 'Accesos del panel',
     shortcutsTitle: 'Accesos',
