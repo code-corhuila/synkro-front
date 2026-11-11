@@ -6,7 +6,9 @@ import { parsePublishedSheet, readSourceFiles, readThemeFile, resolveToken } fro
 const published = parsePublishedSheet(readThemeFile('tokens.css'));
 const hostStylesheets = [...readSourceFiles()].filter(([path]) => path.endsWith('.css') && !path.startsWith('theme/'));
 
-const DARK = '(prefers-color-scheme: dark)';
+const DARK_SELECTOR = ":root[data-theme='dark'] :focus-visible";
+
+const SIDEBAR_SELECTORS = [".sidebar :focus-visible,:root[data-theme='dark'] .sidebar :focus-visible"];
 
 const focusRules = hostStylesheets.flatMap(([path, css]) =>
   parseRules(css)
@@ -20,15 +22,15 @@ function ringToken(rule: CssRule | undefined): string | undefined {
   return outline?.[1].match(/var\((--[\w-]+)\)/)?.[1];
 }
 
-const lightRing = ringToken(focusRules.find((rule) => rule.media === null));
-const darkRing = ringToken(focusRules.find((rule) => rule.media === DARK));
+const lightRing = ringToken(focusRules.find((rule) => rule.selectors.join() === ':focus-visible'));
+const darkRing = ringToken(focusRules.find((rule) => rule.selectors.join() === DARK_SELECTOR));
 
 const valueIn = (theme: 'light' | 'dark', token: string | undefined): string => resolveToken(published, theme, token ?? '');
 
 describe('focus ring', () => {
   it('is one shared :focus-visible rule in the base stylesheet, not one per component', () => {
     expect(focusRules.length).toBeGreaterThan(0);
-    expect(focusRules.filter((rule) => rule.selectors.join() !== ':focus-visible').map((rule) => `${rule.path}: ${rule.selectors}`)).toEqual([]);
+    expect(focusRules.filter((rule) => ![':focus-visible', DARK_SELECTOR, ...SIDEBAR_SELECTORS].includes(rule.selectors.join())).map((rule) => `${rule.path}: ${rule.selectors}`)).toEqual([]);
     expect([...new Set(focusRules.map((rule) => rule.path))]).toEqual(['index.css']);
   });
 
@@ -51,5 +53,13 @@ describe('focus ring', () => {
     const ring = theme === 'dark' ? darkRing : lightRing;
 
     expect(contrastRatio(valueIn(theme, ring), valueIn(theme, surface))).toBeGreaterThanOrEqual(3);
+  });
+
+  // The sidebar is --color-neutral-900 in both themes, so the page ring would sit on navy.
+  it.each(['light', 'dark'] as const)('has a sidebar ring that reaches 3:1 on the navy sidebar, %s', (theme) => {
+    const token = ringToken(focusRules.find((rule) => rule.selectors.join() === SIDEBAR_SELECTORS[0]));
+
+    expect(token).toBeDefined();
+    expect(contrastRatio(valueIn(theme, token), valueIn(theme, '--color-neutral-900'))).toBeGreaterThanOrEqual(3);
   });
 });

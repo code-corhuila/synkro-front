@@ -98,10 +98,12 @@ describe('remote outage', () => {
     expect(load).toHaveBeenCalledTimes(3);
   });
 
-  it('is reachable by keyboard in reading order: retry first, then home', async () => {
+  it('is reachable by keyboard in reading order: theme selector, retry, then home', async () => {
     const user = userEvent.setup();
     renderLogin(() => Promise.reject(new Error('down')));
     await screen.findByText('No pudimos cargar el acceso.');
+    await user.tab();
+    expect(screen.getByRole('radio', { name: 'Sistema' })).toHaveFocus();
     await user.tab();
     expect(screen.getByRole('button', { name: 'Reintentar acceso' })).toHaveFocus();
     await user.tab();
